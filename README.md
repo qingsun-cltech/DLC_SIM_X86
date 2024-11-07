@@ -1,4 +1,13 @@
-## dlc_sim，使用x86模拟函数
+## dlc_sim_x86
+
+  使用x86模拟函数
+
+## 说明
+
+  dlc-intrinsics.h typehint.h x86.h
+  这三个库是自定义的，所以基本所有的修改都是围绕这三个文件
+  sync_h.c sync_c.c 主要为了方便同步 dlc_kernels 和 算子
+  主要是靠 string.replace 实现的，所以需要根据库的实际需要及时修改
 
 ## 使用方法
 
