@@ -62,12 +62,13 @@ inline float8_128 sub_vector_32(const float128_128_2& x, const int& idx) {
   return y;
 }
 
-inline SIM_X86::tensor tensor_slice(SIM_X86::tensor t, uint64_t off) {
+inline SIM_X86::tensor tensor_slice(SIM_X86::tensor t, int64_t off) {
+  return t + off;
   // printf("offset = %lld, szie = %lld\n", off,  t.data_size);
-  assert(off * 32 <= t.data_size);
-  t.data_ptr = t.data_ptr + off * 32;
-  t.data_size = t.data_size - off * 32;
-  return t;
+  // assert(off * 32 <= t.data_size);
+  // t.data_ptr = t.data_ptr + off * 32;
+  // t.data_size = t.data_size - off * 32;
+  // return t;
   // return SIM_X86::tensor(t.data_ptr + off * 32, t.data_size - off * 32);
 }
 
@@ -75,21 +76,21 @@ inline SIM_X86::tensor tensor_slice(SIM_X86::tensor t, uint64_t off) {
 //   tensor_slice(t, std::size_t(off));
 // }
 
-inline SIM_X86::tensor tensor_slice(void* t, const int& off) {
+inline SIM_X86::tensor tensor_slice(void* t, const int64_t& off) {
   return tensor_slice(*(SIM_X86::tensor*)t, off);
 }
 
 inline void TensorFixDims(SIM_X86::DLCTensor* x) {
-  x->dim0 = x->shape[0];
-  x->dim1 = x->shape[1] * x->shape[2] * x->shape[3] * x->shape[4];
-  SIM_X86::DLCType t = (SIM_X86::DLCType)x->dtype;
-  if (t == SIM_X86::DLCType::dlc_int8 || t == SIM_X86::DLCType::dlc_uint8 || t == SIM_X86::DLCType::dlc_bool) {
-    x->dim0_padded = (x->dim0 + 511) & 0xfffffe00;
-  } else if (t == SIM_X86::DLCType::dlc_int16 || t == SIM_X86::DLCType::dlc_bf16 || t == SIM_X86::DLCType::dlc_fp16) {
-    x->dim0_padded = (x->dim0 + 255) & 0xffffff00;
-  } else {
-    x->dim0_padded = (x->dim0 + 127) & 0xffffff80;
-  }
+  // x->dim0 = x->shape[0];
+  // x->dim1 = x->shape[1] * x->shape[2] * x->shape[3] * x->shape[4];
+  // SIM_X86::DLCType t = (SIM_X86::DLCType)x->dtype;
+  // if (t == SIM_X86::DLCType::dlc_int8 || t == SIM_X86::DLCType::dlc_uint8 || t == SIM_X86::DLCType::dlc_bool) {
+  //   x->dim0_padded = (x->dim0 + 511) & 0xfffffe00;
+  // } else if (t == SIM_X86::DLCType::dlc_int16 || t == SIM_X86::DLCType::dlc_bf16 || t == SIM_X86::DLCType::dlc_fp16) {
+  //   x->dim0_padded = (x->dim0 + 255) & 0xffffff00;
+  // } else {
+  //   x->dim0_padded = (x->dim0 + 127) & 0xffffff80;
+  // }
 }
 
 inline void TensorFixDims(std::vector<SIM_X86::DLCTensor>* x) {
@@ -121,6 +122,8 @@ inline int dlc_dma(SIM_X86::tensor src, int, SIM_X86::tensor dst, int, int len, 
     assert(k * src_st + unit_len <= src.data_size && "ERROR: dlc_dma: src_addr out of range");
     if (!(k * dst_st + unit_len <= dst.data_size)) {
       printf("device_id = %d\n", get_device_id());
+      printf("len = %d, src_st = %d, dst_st = %d, unit_len = %d\n", len, src_st, dst_st, unit_len);
+      printf("__PTR = %x, ptr = %x, __LEN = %d, size = %d, type = %d\n", dst.__PTR, dst.data_ptr, dst.__LEN, dst.data_size, dst.type);
     }
     assert(k * dst_st + unit_len <= dst.data_size && "ERROR: dlc_dma: dst_addr out of range");
     std::copy_n(src.data_ptr + k * src_st, unit_len, dst.data_ptr + k * dst_st);
@@ -171,17 +174,17 @@ inline float8_128 v_f32_ld_tnsr_st_msk(const int& offset, const SIM_X86::tensor&
   return dlc_v_f32_load_kernel(tensor_slice(vmem, offset), stride, ldst_mask, true);
 }
 
-inline void v_f32_st_tnsr_b(const int& offset, const SIM_X86::tensor& vmem, const float8_128& x) {
+inline void v_f32_st_tnsr_b(const int& offset, const SIM_X86::tensor& vmem, float8_128 x) {
   dlc_v_f32_store_kernel(tensor_slice(vmem, offset), 1, 0b11111111, true, x);
 }
 
 inline void v_f32_st_tnsr_st(const int& offset, const SIM_X86::tensor& vmem,
-                              const int& stride, const float8_128& x) {
+                              const int& stride, float8_128 x) {
   dlc_v_f32_store_kernel(tensor_slice(vmem, offset), stride, 0b11111111, true, x);
 }
 
 inline void v_f32_st_tnsr_st_msk(const int& offset, const SIM_X86::tensor& vmem,
-                                  const int& stride, const int& ldst_mask, const float8_128& x) {
+                                  const int& stride, const int& ldst_mask, float8_128 x) {
   dlc_v_f32_store_kernel(tensor_slice(vmem, offset), stride, ldst_mask, true, x);
 }
 
@@ -221,7 +224,7 @@ inline float8_128 v_ld_vmsk(const int& offset, const SIM_X86::tensor& vmem,
 
 inline void v_st_vmsk(const int& offset, const SIM_X86::tensor& vmem,
                       const int& stride, const int& ldst_mask,
-                      const bool8_128& vmask, const float8_128& x) {
+                      const bool8_128& vmask, float8_128 x) {
   dlc_v_f32_store_kernel(tensor_slice(vmem, offset), stride, ldst_mask, vmask, x);
 }
 
@@ -258,7 +261,7 @@ inline float8_128 v_f32_fxc_load(const int& offset, const SIM_X86::tensor& cmem,
 }
 
 inline void v_f32_fxc_store(const int& offset, const SIM_X86::tensor& cmem, const int& stride,
-                            const int& ldst_mask, const float8_128& x) {
+                            const int& ldst_mask, float8_128 x) {
   std::bitset<16> bank(0);
   std::bitset<8> mask(ldst_mask);
   for (int i = 0; i < 8; ++i) {
@@ -281,31 +284,31 @@ inline float8_128 m_pop_crf() { return dlc_m_pop_crf(); }
 /* matmul */
 // matmul, arguments are [value, mode, PGX]
 // mode = [0: mul float rounded, 1: mul gsnf, 2: mul gstf]
-inline void m_matmul_single(const float8_128& x, const int& mode, const bool& select) {
-  dlc_m_matmul(x, RoundFormat::ROUND, select);
+inline void m_matmul_single(float8_128 x, const int& mode, const bool& select) {
+  dlc_m_matmul(x, SIM_X86::RoundFormat::ROUND, select);
 
   dlc_update_gmr(mode, select);
 }
 
 // matmul hi float16, arguments are [value, mode, PGX]
 // mode = [0: mul float rounded, 1: mul gsnf, 2: mul gstf]
-inline void m_matmul_f16_hi_single(const float8_128& x, const int& mode, const bool& select) {
-  dlc_m_matmul(x, RoundFormat::TRUNCATE, select);
+inline void m_matmul_f16_hi_single(float8_128 x, const int& mode, const bool& select) {
+  dlc_m_matmul(x, SIM_X86::RoundFormat::TRUNCATE, select);
 
   dlc_update_gmr(mode, select);
 }
 
 // matmul lo float16, arguments are [value, mode, PGX]
 // mode = [0: mul float rounded, 1: mul gsnf, 2: mul gstf]
-inline void m_matmul_f16_lo_single(const float8_128& x, const int& mode, const bool& select) {
-  dlc_m_matmul(x, RoundFormat::LOWER_ROUND, select);
+inline void m_matmul_f16_lo_single(float8_128 x, const int& mode, const bool& select) {
+  dlc_m_matmul(x, SIM_X86::RoundFormat::LOWER_ROUND, select);
 
   dlc_update_gmr(mode, select);
 }
 
 // matmul packed bf16, arguments are [value, mode, PGX]
 // mode = [0: packed mul float rounded, 1: packed mul gsnf, 2: packed mul gstf]
-inline void m_matmul_packed_single(const float8_128& x, const int& mode, const bool& select) {
+inline void m_matmul_packed_single(float8_128 x, const int& mode, const bool& select) {
   for (int CASE = 0; CASE < 2; ++CASE) {
     float8_128 y;
 
@@ -323,7 +326,7 @@ inline void m_matmul_packed_single(const float8_128& x, const int& mode, const b
       }
     }
 
-    dlc_m_matmul(y, RoundFormat::TRUNCATE, select);
+    dlc_m_matmul(y, SIM_X86::RoundFormat::TRUNCATE, select);
   }
 
   dlc_update_gmr(mode, select);
@@ -331,7 +334,7 @@ inline void m_matmul_packed_single(const float8_128& x, const int& mode, const b
 
 // matmul packed int8, arguments are [value, mode, PGX]
 // mode = [0: int8 mul float rounded, 1: int8 mul gsnf, 2: int8 mul gstf]
-inline void m_matmul_int8_single(const float8_128& x, const int& mode, const bool& select) {
+inline void m_matmul_int8_single(float8_128 x, const int& mode, const bool& select) {
   for (int CASE = 0; CASE < 2; ++CASE) {
     float8_128 y;
 
@@ -360,7 +363,7 @@ inline void m_matmul_int8_single(const float8_128& x, const int& mode, const boo
 
 // matmul packed lower16 int8, arguments are [value, mode, PGX]
 // mode = [0: int8 lo mul float rounded, 1: int8 lo mul gsnf, 2: int8 lo mul gstf]
-inline void m_matmul_int8_lo_single(const float8_128& x, const int& mode, const bool& select) {
+inline void m_matmul_int8_lo_single(float8_128 x, const int& mode, const bool& select) {
   float8_128 y;
 
   for (int i = 0; i < 8; ++i) {
@@ -382,27 +385,27 @@ inline void m_matmul_int8_lo_single(const float8_128& x, const int& mode, const 
 // fake mul, includes MTI_MUL_GSTF(GSNF)_ROUNDED + MTR_READ_MATRIX_RESULT
 // arguments are[value, is transposed, PGX]
 // transpose: false->gsnf, true->gstf
-inline float8_128 m_fakemul(const float8_128& x, const bool& transpose, const bool& select) {
+inline float8_128 m_fakemul(float8_128 x, const bool& transpose, const bool& select) {
   m_matmul_single(x, (int)transpose + 1, select);
 
   return dlc_m_pop_mrf(select);
 }
 
-inline float8_128 m_matmul_gsnf(const float8_128& x, const bool& select) {
+inline float8_128 m_matmul_gsnf(float8_128 x, const bool& select) {
   // mode = [0: mul float rounded, 1: mul gsnf, 2: mul gstf]
   m_matmul_single(x, 1, select);
 
   return dlc_m_pop_mrf(select);
 }
 
-inline float8_128 m_matmul_gstf(const float8_128& x, const bool& select) {
+inline float8_128 m_matmul_gstf(float8_128 x, const bool& select) {
   // mode = [0: mul float rounded, 1: mul gsnf, 2: mul gstf]
   m_matmul_single(x, 2, select);
 
   return dlc_m_pop_mrf(select);
 }
 
-inline float8_128 m_matmul_dest_8_128_128(const float8_128& l, const float128_128& r,
+inline float8_128 m_matmul_dest_8_128_128(float8_128 l, const float128_128& r,
                                           const bool& select) {
   for (int i = 0; i < 16; ++i) {
     float8_128 x = sub_vector(r, i) ;
@@ -410,14 +413,14 @@ inline float8_128 m_matmul_dest_8_128_128(const float8_128& l, const float128_12
     dlc_push_gsnf(x, select);
   }
 
-  m_fakemul(l, bool(FakeMulType::GSNF), select);
+  m_fakemul(l, bool(SIM_X86::FakeMulType::GSNF), select);
 
   m_matmul_single(l, 0, select);
   
   return dlc_m_pop_mrf(select);
 }
 
-inline float8_128 m_matmul_dest_8_128_128_T(const float8_128& l, const float128_128& r,
+inline float8_128 m_matmul_dest_8_128_128_T(float8_128 l, const float128_128& r,
                                             const bool& select) {
   for (int i = 0; i < 16; ++i) {
     float8_128 x = sub_vector(r, i) ;
@@ -425,7 +428,7 @@ inline float8_128 m_matmul_dest_8_128_128_T(const float8_128& l, const float128_
     dlc_push_gstf(x, select);
   }
 
-  m_fakemul(l, bool(FakeMulType::GSTF), select);
+  m_fakemul(l, bool(SIM_X86::FakeMulType::GSTF), select);
 
   m_matmul_single(l, 0, select);
   
@@ -440,11 +443,11 @@ inline float128_128 m_matmul_dest_128_128_128(const float128_128& l, const float
     dlc_push_gsnf(x, select);
   }
 
-  m_fakemul(float8_128(0), bool(FakeMulType::GSNF), select);
+  m_fakemul(float8_128(0), bool(SIM_X86::FakeMulType::GSNF), select);
 
   float128_128 res(0);
   for (int i = 0; i < 16; ++i) {
-    m_matmul_single(sub_vector(l, i), int(MatMulType::GSNF), select);
+    m_matmul_single(sub_vector(l, i), int(SIM_X86::FakeMulType::GSNF), select);
 
     float8_128 y = dlc_m_pop_mrf(select);
 
@@ -462,11 +465,11 @@ inline float128_128 m_matmul_dest_128_128_128_T(const float128_128& l, const flo
     dlc_push_gsnf(x, select);
   }
 
-  m_fakemul(float8_128(0), bool(FakeMulType::GSTF), select);
+  m_fakemul(float8_128(0), bool(SIM_X86::FakeMulType::GSTF), select);
 
   float128_128 res(0);
   for (int i = 0; i < 16; ++i) {
-    m_matmul_single(sub_vector(l, i), int(MatMulType::GSTF), select);
+    m_matmul_single(sub_vector(l, i), int(SIM_X86::FakeMulType::GSTF), select);
 
     float8_128 y = dlc_m_pop_mrf(select);
 
@@ -541,10 +544,10 @@ inline float8_128 m_pop_mrf(bool select) { return dlc_m_pop_mrf(select); }
 
 
 /* pushgain */
-inline void push_gsnf(const float8_128& x, bool select) {
+inline void push_gsnf(float8_128 x, bool select) {
   std::vector<dlc_dtype> y = getDlcDtype(x);
   for (int i = 0; i < 1024; ++i) {
-    y[i] = Float32ToFloat16(y[i], RoundFormat::ROUND);
+    y[i] = Float32ToFloat16(y[i], SIM_X86::RoundFormat::ROUND);
   }
 
   float8_128 val;
@@ -555,10 +558,10 @@ inline void push_gsnf(const float8_128& x, bool select) {
   dlc_push_gsnf(val, select);
 }
 
-inline void push_gstf(const float8_128& x, bool select) {
+inline void push_gstf(float8_128 x, bool select) {
   std::vector<dlc_dtype> y = getDlcDtype(x);
   for (int i = 0; i < 1024; ++i) {
-    y[i] = Float32ToFloat16(y[i], RoundFormat::ROUND);
+    y[i] = Float32ToFloat16(y[i], SIM_X86::RoundFormat::ROUND);
   }
 
   float8_128 val;
@@ -570,10 +573,10 @@ inline void push_gstf(const float8_128& x, bool select) {
 }
 
 // pushgian high float16, with transpose or not
-inline void pushgain_hi(const float8_128& x, const bool& transpose, const bool& select) {
+inline void pushgain_hi(float8_128 x, const bool& transpose, const bool& select) {
   std::vector<dlc_dtype> y = getDlcDtype(x);
   for (int i = 0; i < 1024; ++i) {
-    y[i] = Float32ToFloat16(y[i], RoundFormat::TRUNCATE);
+    y[i] = Float32ToFloat16(y[i], SIM_X86::RoundFormat::TRUNCATE);
   }
 
   float8_128 val;
@@ -589,10 +592,10 @@ inline void pushgain_hi(const float8_128& x, const bool& transpose, const bool& 
 }
 
 // pushgian low float16, with transpose or not
-inline void pushgain_lo(const float8_128& x, const bool& transpose, const bool& select) {
+inline void pushgain_lo(float8_128 x, const bool& transpose, const bool& select) {
   std::vector<dlc_dtype> y = getDlcDtype(x);
   for (int i = 0; i < 1024; ++i) {
-    y[i] = Float32ToFloat16(y[i], RoundFormat::LOWER_ROUND);
+    y[i] = Float32ToFloat16(y[i], SIM_X86::RoundFormat::LOWER_ROUND);
   }
 
   float8_128 val;
@@ -608,7 +611,7 @@ inline void pushgain_lo(const float8_128& x, const bool& transpose, const bool& 
 }
 
 // pushgian packed, with transpose or not
-inline void packed_push(const float8_128& x, const bool& transpose, const bool& select) {
+inline void packed_push(float8_128 x, const bool& transpose, const bool& select) {
   std::vector<dlc_dtype> y = getDlcDtype(x);
 
   for (int CASE = 0; CASE < 2; ++CASE) {
@@ -635,36 +638,36 @@ inline void packed_push(const float8_128& x, const bool& transpose, const bool& 
 
 
 /* transpose */
-inline void m_transpose_start(const float8_128& x, const int& width, const bool& select) {
+inline void m_transpose_start(float8_128 x, const int& width, const bool& select) {
   dlc_memorys._transpose_width[get_device_id()][select] = width;
 
   dlc_m_push_transpose_buffer(x, select, false);
 }
 
-inline void m_transpose_mid(const float8_128& x, const bool& select) {
+inline void m_transpose_mid(float8_128 x, const bool& select) {
   dlc_m_push_transpose_buffer(x, select, false);
 }
 
-inline void m_transpose_end(const float8_128& x, const bool& select) {
+inline void m_transpose_end(float8_128 x, const bool& select) {
   dlc_m_push_transpose_buffer(x, select, false);
 
   dlc_m_transpose_to_trf(select);
 }
 
 // height*width(width > 8) m_transpose_packed_start
-inline void m_transpose_packed_start(const float8_128& x, const int& width, const bool& select) {
+inline void m_transpose_packed_start(float8_128 x, const int& width, const bool& select) {
   dlc_memorys._transpose_width[get_device_id()][select] = width;
 
   dlc_m_push_transpose_buffer(x, select, true);
 }
 
 // continues loading data from register mti_x, after the builtin m_transpose_packed_start
-inline void m_transpose_packed_mid(const float8_128& x, const bool& select) {
+inline void m_transpose_packed_mid(float8_128 x, const bool& select) {
   dlc_m_push_transpose_buffer(x, select, true);
 }
 
 // the last instruction of a transpose instruction set
-inline void m_transpose_packed_end(const float8_128& x, const bool& select) {
+inline void m_transpose_packed_end(float8_128 x, const bool& select) {
   dlc_m_push_transpose_buffer(x, select, true);
 
   dlc_m_transpose_to_trf(select);
@@ -696,7 +699,7 @@ inline float128_128 m_transpose_128_128_nws(const float128_128& x, const bool& s
  * @brief: nws[select]: set transpose_width = 8 && push x to transpose_buffer
  *         && execute transpose && load result
  */
-inline float8_128 m_transpose_8_128_nws(const float8_128& x, const bool& select) {
+inline float8_128 m_transpose_8_128_nws(float8_128 x, const bool& select) {
   dlc_memorys._transpose_width[get_device_id()][select] = 8;
 
   dlc_m_push_transpose_buffer(x, select, false);
@@ -709,7 +712,7 @@ inline float8_128 m_transpose_8_128_nws(const float8_128& x, const bool& select)
 /**
  * @brief: nws[select]: set transpose_width && push x to transpose_buffer
  */
-inline void m_transpose_push(const float8_128& x, const int& width, const bool& select) {
+inline void m_transpose_push(float8_128 x, const int& width, const bool& select) {
   dlc_memorys._transpose_width[get_device_id()][select] = width;
 
   dlc_m_push_transpose_buffer(x, select, false);
@@ -734,7 +737,7 @@ inline float8_128 m_pop_trf(const bool& select) { return dlc_m_pop_trf(select); 
  */
 // arguments are [value, permute reg, mti_select, mode]
 // mode {normal = 0, sublanes = 1, bytes = 2}
-inline float8_128 m_f32_perm(const float8_128& x, const int8_128& idx, const int& select,
+inline float8_128 m_f32_perm(float8_128 x, const int8_128& idx, const int& select,
                              const int& mode) {
   dlc_m_set_permute(idx, select, mode);
 
@@ -748,7 +751,7 @@ inline float8_128 m_f32_perm(const float8_128& x, const int8_128& idx, const int
 inline void m_set_permute(const int8_128& x, const int& select) { dlc_m_set_permute(x, select, 0); }
 
 // permute the input register, specify nws
-inline void m_permute(const float8_128& x, const int& select) { dlc_m_permute(x, select); }
+inline void m_permute(float8_128 x, const int& select) { dlc_m_permute(x, select); }
 
 
 
@@ -768,15 +771,15 @@ inline void m_permute(const float8_128& x, const int& select) { dlc_m_permute(x,
 
 /* misc */
 
-inline float8_128 v_f32_add_b(float8_128 x, const float8_128& y) {
+inline float8_128 v_f32_add_b(float8_128 x, float8_128 y) {
   return x + y;
 }
 
-inline float8_128 v_f32_mul_b(float8_128 x, const float8_128& y) {
+inline float8_128 v_f32_mul_b(float8_128 x, float8_128 y) {
   return x * y;
 }
 
-inline float8_128 v_f32_sub_b(float8_128 x, const float8_128& y) {
+inline float8_128 v_f32_sub_b(float8_128 x, float8_128 y) {
   return x - y;
 }
 
@@ -794,12 +797,12 @@ inline float8_128 v_f32_sum_b(float8_128 a) {
   return a;
 }
 
-inline float128_128 v_concat_16(const float8_128& a, const float8_128& b, const float8_128& c,
-                                const float8_128& d, const float8_128& f, const float8_128& g,
-                                const float8_128& h, const float8_128& i, const float8_128& j,
-                                const float8_128& k, const float8_128& l, const float8_128& m,
-                                const float8_128& n, const float8_128& o, const float8_128& p,
-                                const float8_128& q) {
+inline float128_128 v_concat_16(float8_128 a, float8_128 b, float8_128 c,
+                                float8_128 d, float8_128 f, float8_128 g,
+                                float8_128 h, float8_128 i, float8_128 j,
+                                float8_128 k, float8_128 l, float8_128 m,
+                                float8_128 n, float8_128 o, float8_128 p,
+                                float8_128 q) {
   float128_128 r;
   std::copy_n(a.data.begin(), 1024, r.data.begin() + 0 * 1024);
   std::copy_n(b.data.begin(), 1024, r.data.begin() + 1 * 1024);
@@ -851,7 +854,7 @@ inline unsigned128 v_f32_cmp_grt_b(char, float8_128, float8_128) {
   return unsigned128();
 }
 
-inline float8_128 v_f32_mul_vb(const float8_128& x, const float8_128& y,
+inline float8_128 v_f32_mul_vb(float8_128 x, float8_128 y,
                                float8_128 income, const bool8_128& predicate,
                                const char& C = '?') {
   for (int i = 0; i < 8; ++i) {
@@ -923,7 +926,7 @@ inline float8_128 v_f32_exp2(float8_128 a) {
   return a;
 }
 
-inline float8_128 v_f32_min(float8_128 a, const float8_128& b) {
+inline float8_128 v_f32_min(float8_128 a, float8_128 b) {
   for (int i = 0; i < 1024; ++i) {
     a.data[i] = std::min(a.data[i], b.data[i]);
   }
@@ -931,7 +934,7 @@ inline float8_128 v_f32_min(float8_128 a, const float8_128& b) {
   return a;
 }
 
-inline float8_128 v_f32_max(float8_128 a, const float8_128& b) {
+inline float8_128 v_f32_max(float8_128 a, float8_128 b) {
   for (int i = 0; i < 1024; ++i) {
     a.data[i] = std::max(a.data[i], b.data[i]);
   }
@@ -992,7 +995,7 @@ inline float8_128 v_f32_rsqrt(float8_128 a) {
   return a;
 }
 
-inline float8_128 v_f32_clamp(float8_128 x, const float8_128& y) {
+inline float8_128 v_f32_clamp(float8_128 x, float8_128 y) {
   for (int i = 0; i < 1024; ++i) {
     if (y[i] <= 0)
       x[i] = 0.f;
@@ -1020,7 +1023,7 @@ inline float8_128 v_cvt_itof(const int8_128& a) {
   return b;
 }
 
-inline int8_128 v_cvt_ftoi(const float8_128& x, const float8_128& y) {
+inline int8_128 v_cvt_ftoi(float8_128 x, float8_128 y) {
   int8_128 res;
 
   dlc_dtype val;
@@ -1081,7 +1084,7 @@ inline int8_128 v_cvt_ftoi(const float8_128& x, const float8_128& y) {
   return res;
 }
 
-inline int8_128 v_cvt_ftoi(const float8_128& x, const int& y) {
+inline int8_128 v_cvt_ftoi(float8_128 x, const int& y) {
   return v_cvt_ftoi(x, dlc_$F(int8_128(y)));
 }
 
@@ -1091,21 +1094,21 @@ inline void PrintScalar(const char* str, int v) {
   printf("%s: %d, 0x%x, %f\n", str, v, v, *(float*)(&v));
 }
 
-inline void Print(const float& f, const PrintType& dtype) {
+inline void Print(const float& f, const SIM_X86::PrintType& dtype) {
   dlc_dtype val;
   val.f32 = f;
 
   switch (dtype) {
-  case PrintType::FLOAT:
+  case SIM_X86::PrintType::FLOAT:
     printf("%f", val.f32);
     break;
-  case PrintType::INT:
+  case SIM_X86::PrintType::INT:
     printf("%d", val.u32);
     break;
-  case PrintType::HEX:
+  case SIM_X86::PrintType::HEX:
     printf("%x", val.u32);
     break;
-  case PrintType::BIT:
+  case SIM_X86::PrintType::BIT:
     for (int i = 31; i >= 0; --i) {
       printf("%c", ((val.u32 >> i) & 1) ? '1' : '0');
     }
@@ -1119,7 +1122,7 @@ inline void Print(const float& f, const PrintType& dtype) {
 }
 
 // dtype: 0->float, 1->int, 2->hex, 3->bit
-inline void Print(const char* str, const float8_128& v, PrintType dtype, bool vertical = false) {
+inline void Print(const char* str, float8_128 v, SIM_X86::PrintType dtype, bool vertical = false) {
   printf("[XYS%d]: %s\n", dlc_get_device_id(), str);
 
   if (vertical) {
@@ -1141,15 +1144,15 @@ inline void Print(const char* str, const float8_128& v, PrintType dtype, bool ve
   }
 }
 
-inline void Print(const char* str, const int8_128& v, PrintType dtype, bool vertical = false) {
+inline void Print(const char* str, const int8_128& v, SIM_X86::PrintType dtype, bool vertical = false) {
   Print(str, dlc_$F(v), dtype, vertical);
 }
 
-// inline void Print(const char* str, const bool8_128& v, PrintType dtype) {
+// inline void Print(const char* str, const bool8_128& v, SIM_X86::PrintType dtype) {
 //   Print(str, dlc_$F(int8_128(v)), dtype);
 // }
 
-inline void Print(const char* str, SIM_X86::tensor tensor, int len, PrintType dtype) {
+inline void Print(const char* str, SIM_X86::tensor tensor, int len, SIM_X86::PrintType dtype) {
   printf("[XYS%d]: %s\n", dlc_get_device_id(), str);
 
   for (int i = 0; i < len; ++i) {
@@ -1203,17 +1206,17 @@ inline void dlc_s_delay(int) {
   // we don't simulate this
 }
 
-inline float128_128_2 v_concat_32(const float8_128& a, const float8_128& b, const float8_128& c,
-                                  const float8_128& d, const float8_128& e, const float8_128& f,
-                                  const float8_128& g, const float8_128& h, const float8_128& i,
-                                  const float8_128& j, const float8_128& k, const float8_128& l,
-                                  const float8_128& m, const float8_128& n, const float8_128& o,
-                                  const float8_128& p, const float8_128& a2, const float8_128& b2,
-                                  const float8_128& c2, const float8_128& d2, const float8_128& e2,
-                                  const float8_128& f2, const float8_128& g2, const float8_128& h2,
-                                  const float8_128& i2, const float8_128& j2, const float8_128& k2,
-                                  const float8_128& l2, const float8_128& m2, const float8_128& n2,
-                                  const float8_128& o2, const float8_128& p2) {
+inline float128_128_2 v_concat_32(float8_128 a, float8_128 b, float8_128 c,
+                                  float8_128 d, float8_128 e, float8_128 f,
+                                  float8_128 g, float8_128 h, float8_128 i,
+                                  float8_128 j, float8_128 k, float8_128 l,
+                                  float8_128 m, float8_128 n, float8_128 o,
+                                  float8_128 p, float8_128 a2, float8_128 b2,
+                                  float8_128 c2, float8_128 d2, float8_128 e2,
+                                  float8_128 f2, float8_128 g2, float8_128 h2,
+                                  float8_128 i2, float8_128 j2, float8_128 k2,
+                                  float8_128 l2, float8_128 m2, float8_128 n2,
+                                  float8_128 o2, float8_128 p2) {
   float128_128_2 r;
   std::copy_n(a.data.begin(), 1024, r.data.begin() + 0 * 1024);
   std::copy_n(b.data.begin(), 1024, r.data.begin() + 1 * 1024);
@@ -1258,7 +1261,7 @@ inline bool8_128 v_s32_eq(const int8_128& x, const int8_128& y) {
   return z;
 }
 
-inline bool8_128 v_f32_eq(const float8_128& a, float8_128& b) {
+inline bool8_128 v_f32_eq(float8_128 a, float8_128& b) {
   bool8_128 m;
   for (int i = 0; i < 1024; ++i) {
     m.data[i] = (a.data[i] == b.data[i]);
@@ -1273,7 +1276,7 @@ inline int8_128 v_s32_sel(const bool8_128& m, int8_128 a, const int8_128& b) {
   return a;
 }
 
-inline float8_128 v_f32_sel(const bool8_128& m, float8_128 a, const float8_128& b) {
+inline float8_128 v_f32_sel(const bool8_128& m, float8_128 a, float8_128 b) {
   for (int i = 0; i < 1024; ++i) {
     a.data[i] = (m.data[i] ? b.data[i] : a.data[i]);
   }
@@ -1290,7 +1293,7 @@ inline int8_128 get_core_id() {
   return v;
 }
 
-inline float8_128 v_row_rotate(const float8_128& x, int d) {
+inline float8_128 v_row_rotate(float8_128 x, int d) {
   float8_128 y;
   d = 1 - d * 2;
 
@@ -1408,7 +1411,7 @@ inline bool8_128 v_s32_cmp(int op, const int8_128& a, const int8_128& b) {
   return res;
 }
 
-inline bool8_128 v_f32_cmp(int op, const float8_128& a, const float8_128& b) {
+inline bool8_128 v_f32_cmp(int op, float8_128 a, float8_128 b) {
   enum {
     EQ = 0,
     NEQ = 1,
@@ -1454,7 +1457,7 @@ inline int8_128 v_u32_xor(int8_128 a, const int8_128& b) {
 }
 
 // m_rotate with out pop, you have to use m_pop_trf to get result
-inline void m_rotate_single(const float8_128& x, const int& shift, const bool& select) {
+inline void m_rotate_single(float8_128 x, const int& shift, const bool& select) {
   float8_128 y;
 
   for (int i = 0; i < 8; ++i) {
@@ -1468,7 +1471,7 @@ inline void m_rotate_single(const float8_128& x, const int& shift, const bool& s
 }
 
 // m_rotate and pop
-inline float8_128 m_rotate(const float8_128& x, const int& shift, const bool& select) {
+inline float8_128 m_rotate(float8_128 x, const int& shift, const bool& select) {
   m_rotate_single(x, shift, select);
 
   return dlc_m_pop_trf(select);
@@ -1598,9 +1601,9 @@ inline int8_128 float_to_bfloat16(float8_128 x, float8_128 y) {
   for (int i = 0; i < 1024; ++i) {
     dlc_dtype dd;
     dd.f32 = x[i];
-    uint32_t a = Float32ToFloat16(dd, RoundFormat::ROUND).u32;
+    uint32_t a = Float32ToFloat16(dd, SIM_X86::RoundFormat::ROUND).u32;
     dd.f32 = y[i];
-    uint32_t b = Float32ToFloat16(dd, RoundFormat::ROUND).u32;
+    uint32_t b = Float32ToFloat16(dd, SIM_X86::RoundFormat::ROUND).u32;
     val[i] = (a & 0xFFFF0000) | ((b >> 16) & 0x0000FFFF);
   }
 
@@ -1791,7 +1794,7 @@ inline void m_sum_single(float8_128 x, bool select) {
 }
 
 // input a float32 vector, returns if it is inf or nan
-inline bool8_128 v_f32_infnan(const float8_128& x) {
+inline bool8_128 v_f32_infnan(float8_128 x) {
   bool8_128 result;
   dlc_dtype dd;
 

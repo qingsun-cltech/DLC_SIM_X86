@@ -1,9 +1,11 @@
-// #include "align.h"
-// #include "convert_element_type.h"
-// #include "permute.h"
-// #include "typehint.h"
+#pragma once
+#include "../dlc-intrinsics.h"
+#include "../typehint.h"
 
-#include "../x86.h"
+#include "align.h"
+#include "convert_element_type.h"
+#include "permute.h"
+
 
 /**
  * TODO: special judge for small cases(vmem is big enough)
@@ -14,20 +16,20 @@
  * 20241002
  * 参考：https://alidocs.dingtalk.com/i/nodes/yQod3RxJKMDYgdMpIgMpPzjBWkb4Mw9r?utm_scene=person_space&sideCollapsed=true&iframeQuery=utm_source%253Dportal%2526utm_medium%253Dportal_new_tab_open&corpId=ding10a90f5b23be3daf24f2f5cc6abecb85
  * 优化思路：（以 dlc SIM_X86::tensor 为例，a,b,c 只考虑 repeats = int）
-    a. 对于 5 维 tensor，假设 dim=2，repeats = 2, 那么，可以把 dim0*dim1 当作 dim0，因为它们在地址上是连续的，同时可以把 dim2,dim3,dim4 合并成一个 dim，最后变成一个 2 维矩阵举个栗子：tensor(128, 5, 4, 3, 2) => SIM_X86::tensor(640, 24)，在最后的结果上是一致的为什么要看成 2 维矩阵：HBM2HBM 每次的 size 就不再局限于 dim0，而是直接和新的二维矩阵息息相关，假设新 SIM_X86::tensor(x, y)，那么 HBM2HBM 可以考虑 3 种方向：
+    a. 对于 5 维 SIM_X86::tensor，假设 dim=2，repeats = 2, 那么，可以把 dim0*dim1 当作 dim0，因为它们在地址上是连续的，同时可以把 dim2,dim3,dim4 合并成一个 dim，最后变成一个 2 维矩阵举个栗子：SIM_X86::tensor(128, 5, 4, 3, 2) => SIM_X86::tensor(640, 24)，在最后的结果上是一致的为什么要看成 2 维矩阵：HBM2HBM 每次的 size 就不再局限于 dim0，而是直接和新的二维矩阵息息相关，假设新 SIM_X86::tensor(x, y)，那么 HBM2HBM 可以考虑 3 种方向：
         i. repeats                   * y           * HBM2HBM(x)
         ii. ALIGN128(x) / 128 * y           * HBM2HBM(repeats * 128)
         iii. ALIGN128(x) / 128 * repeats * HBM2HBM(y * 128)我们从三种情况里选择 dma 启动次数最少的情况就行，因为从理论上来说，传输的数据长度一致，dma 启动次数越少，cycle 越少
-    b. 对于 dim = 0 的情况，还是先把 5 维 SIM_X86::tensor 看成 2 维 tensor，然后转置二维矩阵，再 repeats，最后转置回去即可
+    b. 对于 dim = 0 的情况，还是先把 5 维 SIM_X86::tensor 看成 2 维 SIM_X86::tensor，然后转置二维矩阵，再 repeats，最后转置回去即可
     c. 对于 dim = null 的情况，这个情况下最难优化
         i. 最暴力的方法，把每个 dim0 都转置，然后让转置的所有矩阵在地址上连续，然后 repeats，最后转置 [1, dim0*dim1*dim2*dim3*dim4*repeats]这个矩阵，就获得了一个进行了 repeats 的 1 维矩阵。写起来比较方便，但是效率很低。
         ii. 对于 repeats = 128 * n：可以使用 mti_permute，因为 pcr 设置起来很方便，由于 repeats 是 128 的倍数，对于 dlc 来说就是最完美的状态
         iii. 对于 repeats = 2 ^ n（n > 0）：也可以使用 mti_permute，但是 pcr 设置会有点麻烦，因为 dim0 * repeats 不一定是 128 的倍数，所以需要拼接 dim0
-        iv. 除了上述两种特殊情况，说实在都挺麻烦的，一方面由于最后的结果是一个 1 维 tensor，需要拼接数据保证地址连续，另一方面，整数除法的精度不高，pcr 设置会出错
+        iv. 除了上述两种特殊情况，说实在都挺麻烦的，一方面由于最后的结果是一个 1 维 SIM_X86::tensor，需要拼接数据保证地址连续，另一方面，整数除法的精度不高，pcr 设置会出错
         v. 或者直接考虑用 scalar 做，感觉会更快
     d. 对于 repeats = SIM_X86::tensor 的情况
         i. 如果 SIM_X86::tensor 是 broadcast 的，那么直接当 repeats = int 来看就行
-        ii. 对于 dim >= 0，此时可以把 SIM_X86::tensor 看成 3 维矩阵，例如 dim=2，tensor(128, 5, 4, 3, 2) => SIM_X86::tensor(640, 4, 6)，此时由于对于 4*640 来说，里面每个 640 的 repeats 都不一样，所以就没有 repeats=int 那么方便，此时也有三种方向：
+        ii. 对于 dim >= 0，此时可以把 SIM_X86::tensor 看成 3 维矩阵，例如 dim=2，SIM_X86::tensor(128, 5, 4, 3, 2) => SIM_X86::tensor(640, 4, 6)，此时由于对于 4*640 来说，里面每个 640 的 repeats 都不一样，所以就没有 repeats=int 那么方便，此时也有三种方向：
             1. 假设 SIM_X86::tensor(x, y, z)
             2. 假设 m = SUM(repeats_tensor)，repeats 的总和
             3. 假设 n = LEN(repeats_tensor)，repeats 的个数
@@ -45,26 +47,24 @@
 const int D_SMEM = 0;
 const int D_CMEM = 3;
 
-// inline void HBM2SMem(SIM_X86::tensor hbm_address, int* smem_address, int length) {
-//   int handle = dlc_dma(hbm_address, D_HBM, (int*)((unsigned)(smem_address) / 128), D_SMEM, length, 128, 128, 128, 7);
-//   dlc_sync(handle);
-// }
-// inline void SMem2HBM(int* smem_address, SIM_X86::tensor hbm_address, int length){
-//     int handle = dlc_dma((int*)((unsigned)(smem_address) / 128), D_SMEM, hbm_address, D_HBM, length, 128, 128, 128, 7);
-//     dlc_sync(handle);    
-// }
+inline void HBM2SMem(SIM_X86::tensor hbm_address, int* smem_address, int length) {
+  int handle = dlc_dma(hbm_address, D_HBM, (int*)((unsigned)(smem_address) / 128), D_SMEM, length, 128, 128, 128, 7);
+  dlc_sync(handle);
+}
+inline void SMem2HBM(int* smem_address, SIM_X86::tensor hbm_address, int length){
+    int handle = dlc_dma((int*)((unsigned)(smem_address) / 128), D_SMEM, hbm_address, D_HBM, length, 128, 128, 128, 7);
+    dlc_sync(handle);    
+}
 
 inline void HBM2HBMstride(SIM_X86::tensor input0_hbm, SIM_X86::tensor output_hbm, SIM_X86::tensor input0_vmem, int VMEMSIZE,
                           int dma_length, int src_stride, int dst_stride) {
-  int diff_addr   = ((int)(input0_hbm.data_size) - (int)(output_hbm.data_size)) * 32 * 4;
+  int diff_addr   = ((int)(input0_hbm) - (int)(output_hbm)) * 32 * 4;
   int diff_stride = (src_stride - dst_stride);
 
   if (diff_addr % 2048 == 0 && diff_stride % 512 == 0) {
-    // if (get_device_id() == 0) printf("********************3*******************\n");
     int handle = dlc_dma(input0_hbm, D_HBM, output_hbm, D_HBM, dma_length, src_stride, dst_stride, 128, 7);
     dlc_sync(handle);
   } else {
-    // if (get_device_id() == 0) printf("********************4*******************\n");
     for (int len = 0; len < dma_length; len += VMEMSIZE) {
       int dma_sub_length = min(dma_length - len, VMEMSIZE);
 
@@ -131,7 +131,6 @@ inline void RepeatInterleaveRepeatsTensorToArray(int8_128 vreg, int* repeats, in
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 128; ++j) {
       repeats[cnt++] = vreg[0];
-      // printf("cnt = %d\n, repeatss = %d\n", cnt, repeats[cnt - 1]);
       if (len == cnt) return;
       vreg = __$S(m_rotate(__$F(vreg), -1, false));
     }
@@ -501,9 +500,6 @@ inline void RepeatInterleaveTensorKernel(SIM_X86::tensor input0_hbm, SIM_X86::te
   int dim2 = input0_shape[2];
   int CASE = RepeatInterleaveTensorCalCase(dim0, dim2, repeats_sum, repeats_length);
 
-  // if (get_device_id())
-  // printf("CASE = %d\n", CASE);
-
   int repeats_array[1024] = {0};
 
   if (CASE == 0) {
@@ -517,28 +513,11 @@ inline void RepeatInterleaveTensorKernel(SIM_X86::tensor input0_hbm, SIM_X86::te
       int8_128 vreg = __$S(v_f32_ld_tnsr_st_msk(repeats_index / 32, repeats_vmem, 1, pre_exp2(ALIGN128(k_len) / 128)));
       RepeatInterleaveRepeatsTensorToArray(vreg, repeats_array, k_len);
 
-      // if (get_device_id() == 0) {
-      //   for (int i = 0 ; i < k_len; ++i) {
-      //     printf("repeats_array = %d\n", repeats_array[i]);
-      //   }
-      // }
-
       for (int k = 0; k < k_len; ++k) {
         int repeats = repeats_array[k];
 
         for (int d2 = 0; d2 < dim2; ++d2) {
           int r = 1 * get_device_id();
-            // if (get_device_id() == 0){
-            //   printf("********************3*******************\n");
-            //   printf("len = %d\n", dim0);
-            //   printf("dim2 = %d\n", dim2);
-            //   printf("dim0 = %d\n", dim0);
-            //   printf("repeats = %d\n", repeats);
-            //   printf("128 * repeats = %d\n", 128 * repeats);
-            //   for (int i = 0 ; i < 6; ++i) {
-            //     printf("vreg = %d\n", vreg[i]);
-            //   }
-            // }
 
           for (; r < repeats; r += 2) {
             HBM2HBMstride(tensor_slice(input0_hbm, (repeats_index + k + d2 * repeats_length) * dim0 / 32),
@@ -559,14 +538,7 @@ inline void RepeatInterleaveTensorKernel(SIM_X86::tensor input0_hbm, SIM_X86::te
     for (int repeats_index = 0; repeats_index < repeats_length; repeats_index += 1024) {
       int repeats_sub_len = min(1024, repeats_length - repeats_index);
       int8_128 vreg = __$S(v_f32_ld_tnsr_st_msk(repeats_index / 32, repeats_vmem, 1, pre_exp2(ALIGN128(repeats_sub_len) / 128)));
-
       RepeatInterleaveRepeatsTensorToArray(vreg, repeats_array, repeats_sub_len);
-      // printf("repeats_sub_len = %d\n", repeats_sub_len);
-      // if (get_device_id()) {
-      //   for (int i = 0; i < repeats_sub_len; ++i) {
-      //     printf("repeats_array[i] = %d\n", repeats_array[i]);
-      //   }
-      // }
 
       for (int repeats_sub_index = 0; repeats_sub_index < repeats_sub_len; ++repeats_sub_index) {
         int repeats = repeats_array[repeats_sub_index];
@@ -842,11 +814,6 @@ inline void RepeatInterleaveArrayTensorDefault(SIM_X86::tensor input0_hbm,
                  tensor_slice(input1_hbm, d1 * dim0 * 128 / 32),
                  input0_vmem, VMEMSIZE, dims, perm);
   }
-  // if (get_device_id()) {
-  //   for (int i = 0; i < dim0 * dim1 * 128; ++i) {
-  //     printf("%f%c", input1_hbm.data_ptr[i], i % 128 == 127 ? '\n' : ' ');
-  //   }
-  // }
 
   int dim0_permute = 1;
   int dim1_permute = dim0 * dim1;
@@ -857,9 +824,6 @@ inline void RepeatInterleaveArrayTensorDefault(SIM_X86::tensor input0_hbm,
                                 input0_vmem, VMEMSIZE,
                                 repeats_hbm, permute_shape, dim0 * dim1,
                                 &repeats_sum);
-  // if (get_device_id()) {
-  //   printf("x**********************************\n");
-  // }
 
   dims[0] = dim0_permute;
   dims[1] = repeats_sum;
@@ -900,20 +864,20 @@ inline void RepeatInterleaveArrayTensorDefaultBf16(SIM_X86::tensor input0_hbm,
  * Experimental code
  * test speed between scalar and vector in case "dim = null"
 */
-// inline void RepeatInterleaveArrayIntDefaultScalar(SIM_X86::tensor input0_hbm, SIM_X86::tensor output_hbm,
-//                                                   void* input_smem, int SMEMSIZE,
-//                                                   int repeats, int dim0, int dim1) {
-//   void* output_smem = (void*)((int)input_smem + SMEMSIZE / 128 / 2 * 128 * 4);
-//   for (int i = 0; i < dim1; ++i) {
-//     HBM2SMem(tensor_slice(input0_hbm, i * ALIGN128(dim0) / 32), input_smem, ALIGN128(dim0));
-//     for (int j = 0; j < dim0; ++j) {
-//       for (int r = 0; r < repeats; ++r) {
-//         ((int*)output_smem)[i * dim0 * repeats + j * repeats + r] = ((int*)input_smem)[i * dim0 + j];
-//       }
-//     }
-//     SMem2HBM(output_smem, tensor_slice(output_hbm, i * ALIGN128(dim0 * repeats) / 32), ALIGN128(dim0 * repeats));
-//   }
-// }
+inline void RepeatInterleaveArrayIntDefaultScalar(SIM_X86::tensor input0_hbm, SIM_X86::tensor output_hbm,
+                                                  SIM_X86::tensor input_smem, int SMEMSIZE,
+                                                  int repeats, int dim0, int dim1) {
+  SIM_X86::tensor output_smem = (SIM_X86::tensor)((int)input_smem + SMEMSIZE / 128 / 2 * 128 * 4);
+  for (int i = 0; i < dim1; ++i) {
+    HBM2SMem(tensor_slice(input0_hbm, i * ALIGN128(dim0) / 32), input_smem, ALIGN128(dim0));
+    for (int j = 0; j < dim0; ++j) {
+      for (int r = 0; r < repeats; ++r) {
+        ((int*)output_smem)[i * dim0 * repeats + j * repeats + r] = ((int*)input_smem)[i * dim0 + j];
+      }
+    }
+    SMem2HBM(output_smem, tensor_slice(output_hbm, i * ALIGN128(dim0 * repeats) / 32), ALIGN128(dim0 * repeats));
+  }
+}
 
 
 // dim[0] not padded
