@@ -13,6 +13,8 @@ const int SENDRECV_HANDSHAKE_C_SYNC = EXCHIP_COMMU_SYNC_3;
 const int HANDSHAKE_REQUIRE = 0x2E0000;
 const int HANDSHAKE_DENY = 0xDE0000;
 const int HANDSHAKE_ACK = 0xA30000;
+const int SENDRECV_DIRECT_ADDR_EXCHANGE = CHANNEL_EXCHIP_BUFF_ADDR_SYNC_BASE;
+const int SENDRECV_RECV_WAIT = EXCHIP_COMMU_SYNC_4;
 
 inline void handshake_send(int selfChip, int targetChip) {
     rsync_set_done(targetChip, SENDRECV_HANDSHAKE_C_SYNC);

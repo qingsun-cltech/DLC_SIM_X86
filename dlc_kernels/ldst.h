@@ -644,6 +644,100 @@ inline void store8_128_stride_with_stmask_cmem(const int off, const int st, cons
     }
 }
 
+inline float8_128 load8_128_stride2_with_ldmask_cmem(const int off, const int st, const int ldmask, SIM_X86::tensor t)
+{
+    float8_128 res = 0;
+    if(ldmask & 0b11110000){
+        float8_128 a = v_f32_fxc_load(off, t, st, ldmask & 0b11110000);
+        res = vmix(a, res);
+    }
+    if(ldmask & 0b00001111){
+        float8_128 b = v_f32_fxc_load(off, t, st, ldmask & 0b00001111);
+        res = vmix(b, res);
+    }
+    return res;
+}
+
+inline float8_128 load8_128_stride4_with_ldmask_cmem(const int off, const int st, const int ldmask, SIM_X86::tensor t)
+{
+    float8_128 res = 0;
+    if(ldmask & 0b11000000){
+        float8_128 a = v_f32_fxc_load(off, t, st, ldmask & 0b11000000);
+        res = vmix(a, res);
+    }
+    if(ldmask & 0b00110000){
+        float8_128 b = v_f32_fxc_load(off, t, st, ldmask & 0b00110000);
+        res = vmix(b, res);
+    }
+    if(ldmask & 0b00001100){
+        float8_128 c = v_f32_fxc_load(off, t, st, ldmask & 0b00001100);
+        res = vmix(c, res);
+    }
+    if(ldmask & 0b00000011){
+        float8_128 d = v_f32_fxc_load(off, t, st, ldmask & 0b00000011);
+        res = vmix(d, res);
+    }
+    return res;
+}
+
+inline float8_128 load8_128_stride8_with_ldmask_cmem(const int off, const int st, const int ldmask, SIM_X86::tensor t)
+{
+    float8_128 res = 0;
+    if(ldmask & 0b10000000){
+        float8_128 a = v_f32_fxc_load(off, t, st, ldmask & 0b10000000);
+        res = vmix(a, res);
+    }
+    if(ldmask & 0b01000000){
+        float8_128 b = v_f32_fxc_load(off, t, st, ldmask & 0b01000000);
+        res = vmix(b, res);
+    }
+    if(ldmask & 0b00100000){
+        float8_128 c = v_f32_fxc_load(off, t, st, ldmask & 0b00100000);
+        res = vmix(c, res);
+    }
+    if(ldmask & 0b00010000){
+        float8_128 d = v_f32_fxc_load(off, t, st, ldmask & 0b00010000);
+        res = vmix(d, res);
+    }
+    if(ldmask & 0b00001000){
+        float8_128 e = v_f32_fxc_load(off, t, st, ldmask & 0b00001000);
+        res = vmix(e, res);
+    }
+    if(ldmask & 0b00000100){
+        float8_128 f = v_f32_fxc_load(off, t, st, ldmask & 0b00000100);
+        res = vmix(f, res);
+    }
+    if(ldmask & 0b00000010){
+        float8_128 g = v_f32_fxc_load(off, t, st, ldmask & 0b00000010);
+        res = vmix(g, res);
+    }
+    if(ldmask & 0b00000001){
+        float8_128 h = v_f32_fxc_load(off, t, st, ldmask & 0b00000001);
+        res = vmix(h, res);
+    }
+    return res;
+}
+
+inline float8_128 load8_128_stride_with_ldmask_cmem(const int off, const int st, const int ldmask, SIM_X86::tensor t)
+{
+    if ((st & 1) == 1)
+    {
+        return v_f32_fxc_load(off, t, st, ldmask);
+    }
+    else if ((st & 7) == 2 || (st & 7) == 6)
+    {
+        return load8_128_stride2_with_ldmask_cmem(off, st, ldmask, t);
+    }
+    else if ((st & 7) == 4)
+    {
+        return load8_128_stride4_with_ldmask_cmem(off, st, ldmask, t);
+    }
+    else
+    {
+        return load8_128_stride8_with_ldmask_cmem(off, st, ldmask, t);
+    }
+}
+
 inline void store8_128_stride2_stmk(const int off, const int st, SIM_X86::tensor t, float8_128 data, int stmk) {
     v_f32_st_tnsr_st_msk(off, t, st, 0b11110000 & stmk, data);
     v_f32_st_tnsr_st_msk(off, t, st, 0b00001111 & stmk, data);

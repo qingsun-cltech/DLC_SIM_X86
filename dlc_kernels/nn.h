@@ -5532,8 +5532,8 @@ inline void matmul_LHS_aw256_pipeline_bf16(SIM_X86::tensor A, SIM_X86::tensor C,
 }
 //默认gain里已有数据，只做高度为ah，aw为256的matmul。
 //左矩阵和输出均为bf16，C存放f32格式的结果，D存放bf16格式的结果。
-inline void matmul_LHS_aw256_bf16(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int add_src_flag, float8_128 scale) {
-    if (iaw == aw - 256)
+inline void matmul_LHS_aw256_bf16(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int add_src_flag, int is_last_aw, float8_128 scale) {
+    if (is_last_aw && iaw + 256 >= aw)
         matmul_gain_2pgx_no_pack_opt_store_rest_bf16(A, C, D, ah, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, scale);
     else
         matmul_gain_2pgx_no_pack_opt_rest_bf16(A, C, D, ah, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, scale);
@@ -8863,8 +8863,8 @@ inline void push_aw128_f32(SIM_X86::tensor B, int aw, int bw, int iaw, int ibw, 
 
 //默认gain里已有数据，只做高度为ah，aw为128的matmul。
 //左矩阵和输出均为bf16,C存放f32格式的结果，D存放bf16格式的结果。
-inline void matmul_LHS_aw128_bf16(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int bf_ibw, int add_src_flag, float8_128 scale) {
-    if (ibw == ALIGN128(bw) - 128 || ibw % 256)
+inline void matmul_LHS_aw128_bf16(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int bf_ibw, int add_src_flag, int is_last_aw, float8_128 scale) {
+    if (is_last_aw && iaw + 128 >= aw)
         matmul_gain_no_pack_opt_store_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, scale);
     else
         matmul_gain_no_pack_opt_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, scale);
@@ -9011,10 +9011,10 @@ inline void matmul_gain_2pgx_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor 
 
 //一个完整的vmem矩阵乘法，需要所有tensor都能一次性被vmem容纳。
 //左右矩阵与输出均为bf16
-inline void matmul_all_bf16(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int add_src_flag, float Lscale, float Rscale) {
+inline void matmul_all_bf16(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tensor C, int ah, int aw, int bw, int add_src_flag, int is_last_aw, float Lscale, float Rscale) {
     int aw256 = aw & 0xffffff00;
     int bf_ibw = 0;
-
+    SIM_X86::tensor D = C;
     for (int ibw = 0; ibw < bw; ibw += 128) {
         int iaw = 0;
         int bf_iaw = 0;
@@ -9024,14 +9024,14 @@ inline void matmul_all_bf16(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tenso
             m_fakemul(v_u32_move_b(0), 0, 0);
             m_fakemul(v_u32_move_b(0), 0, 1);
             //if (Lscale == 1.0) matmul_LHS_aw256_pipeline_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag);
-            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, Lscale);
+            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, is_last_aw, Lscale);
             bf_iaw += 128;
         }
         for (;iaw < aw; iaw += 128) {
             push_aw128_bf16(B, aw, bw, iaw, ibw, bf_ibw, Rscale);
             //load datas in gain to GMR
             m_fakemul(v_u32_move_b(0), 0, 0);
-            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, Lscale);
+            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, is_last_aw, Lscale);
         }
         C = C + ah * 4;
         if (ibw % 256) {
@@ -9043,9 +9043,11 @@ inline void matmul_all_bf16(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tenso
 
 //一个完整的vmem矩阵乘法，需要所有tensor都能一次性被vmem容纳。
 //输入输出均为bf16，右矩阵转置
-inline void matmul_all_bf16_RHST(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int add_src_flag, float Lscale, float Rscale) {
+inline void matmul_all_bf16_RHST(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tensor C, int ah, int aw, int bw, int add_src_flag, int is_last_aw, float Lscale, float Rscale) {
     int aw256 = aw & 0xffffff00;
     int bw128 = bw & 0xffffff80;
+    SIM_X86::tensor D = C;
+
     for (int ibw = 0; ibw < bw128; ibw += 128) {
         int iaw = 0;
         int bf_iaw = 0;
@@ -9054,13 +9056,13 @@ inline void matmul_all_bf16_RHST(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::
             m_fakemul(v_u32_move_b(0), 1, 0);
             m_fakemul(v_u32_move_b(0), 1, 1);
             //if (Lscale == 1.0) matmul_LHS_aw256_pipeline_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag);
-            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, Lscale);
+            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, is_last_aw, Lscale);
             bf_iaw += 128;
         }
         for (;iaw < aw; iaw += 128) {
             push_aw128_T_bf16(B, aw, bw, iaw, ibw, bf_iaw, Rscale);
             m_fakemul(v_u32_move_f(0), 1, 0);
-            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, 0, add_src_flag, Lscale);
+            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, 0, add_src_flag, is_last_aw, Lscale);
         }
         C += ah * 4;
         if (ibw % 256) {
@@ -9075,13 +9077,13 @@ inline void matmul_all_bf16_RHST(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::
             m_fakemul(v_u32_move_b(0), 1, 0);
             m_fakemul(v_u32_move_b(0), 1, 1);
             //if (Lscale == 1.0) matmul_LHS_aw256_pipeline_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, bw128, add_src_flag);
-            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, bw128, add_src_flag, Lscale);
+            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, bw128, add_src_flag, is_last_aw, Lscale);
             bf_iaw += 128;
         }
         for (;iaw < aw; iaw += 128) {
             push_aw128_T_bf16(B, aw, bw, iaw, bw128, bf_iaw, Rscale);
             m_fakemul(v_u32_move_f(0), 1, 0);
-            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, bw128, 0, add_src_flag, Lscale);
+            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, bw128, 0, add_src_flag, is_last_aw, Lscale);
         }
     }
 }
@@ -10050,4 +10052,360 @@ inline void matmul_all_f32_RHS_ldstride(SIM_X86::tensor A, SIM_X86::tensor B, SI
 }
 
 
+inline void load_mat_0123_h_with_sync(SIM_X86::tensor src, SIM_X86::tensor dst, int dim0, int dim1, int dim2, int dim3, int idx0, int idx1,
+    int idx2, int idx3, int vmemH, int vmemW) {
+    const int offset = idx0 * dim1 * dim2 * dim3 + idx1 * dim2 * dim3 + idx2 * dim3 + idx3;
+    for (int i = 0; i < vmemW; i += 128) {
+        dlc_sync(dlc_dma(tensor_slice(src, (offset + i) / 32), HBM, tensor_slice(dst, i * vmemH / 32), VMEM,
+            vmemH * 128, dim3, 128, 128, 7));
+    }
+}
+
+inline void store_mat_0123_h_with_sync(SIM_X86::tensor src, SIM_X86::tensor dst, int dim0, int dim1, int dim2, int dim3, int idx0, int idx1,
+    int idx2, int idx3, int vmemH, int vmemW) {
+    const int offset = idx0 * dim1 * dim2 * dim3 + idx1 * dim2 * dim3 + idx2 * dim3 + idx3;
+    int len = vmemH * 128;
+    for (int i = 0; i < ALIGN128(vmemW); i += 128) {
+        dlc_sync(dlc_dma(src + i * vmemH / 32, VMEM, dst + (i + offset) / 32, HBM, len, 128, dim3, 128, 7));
+    }
+}
+
+inline int load_mat_0123_h_without_sync(SIM_X86::tensor src, SIM_X86::tensor dst, int dim0, int dim1, int dim2, int dim3, int idx0, int idx1,
+    int idx2, int idx3, int vmemH, int vmemW) {
+        const int offset = idx0 * dim1 * dim2 * dim3 + idx1 * dim2 * dim3 + idx2 * dim3 + idx3;
+    int i = 0;
+    for (; i < vmemW - 128; i += 128) {
+        dlc_dma(tensor_slice(src, (offset + i) / 32), HBM, tensor_slice(dst, i * vmemH / 32), VMEM,
+            vmemH * 128, dim3, 128, 128, 7);
+    }
+    return dlc_dma(tensor_slice(src, (offset + i) / 32), HBM, tensor_slice(dst, i * vmemH / 32), VMEM,
+        vmemH * 128, dim3, 128, 128, 7);
+}
+
+inline int store_mat_0123_h_without_sync(SIM_X86::tensor src, SIM_X86::tensor dst, int dim0, int dim1, int dim2, int dim3, int idx0, int idx1,
+    int idx2, int idx3, int vmemH, int vmemW) {
+    const int offset = idx0 * dim1 * dim2 * dim3 + idx1 * dim2 * dim3 + idx2 * dim3 + idx3;
+    int len = vmemH * 128;
+    int i = 0;
+    for (; i + 128 < ALIGN128(vmemW); i += 128) {
+        dlc_dma(src + i * vmemH / 32, VMEM, dst + (i + offset) / 32, HBM, len, 128, dim3, 128, 7);
+    }
+    return dlc_dma(src + i * vmemH / 32, VMEM, dst + (i + offset) / 32, HBM, len, 128, dim3, 128, 7);
+}
+
+//pingpong version of matmul_all_bf16
+//usage:sync = matmul_all_bf16_pingpong(input0_hbm, input1_hbm, output_hbm, input0, input1, output,
+//          process_ah, process_aw, process_bw, AH, AW, BW, i, j, k, aw + k >= AW, 1.0, 1.0);
+//then dlc_sync(sync); before program's end.
+//No other DMAs outside anymore, in the function it will load from HBM each 128 columns an iteration.
+inline int matmul_all_bf16_pingpong(SIM_X86::tensor input0_hbm, SIM_X86::tensor input1_hbm, SIM_X86::tensor output_hbm, SIM_X86::tensor input0, SIM_X86::tensor input1, SIM_X86::tensor output,
+    int process_ah, int process_aw, int process_bw, int AH, int AW, int BW, int i, int j, int k, int is_last_aw, float Lscale, float Rscale) {
+    int aw256 = process_aw & 0xffffff00;
+    int bf_ibw = 0;
+    SIM_X86::tensor output_ptr = output;
+    SIM_X86::tensor output_tmp_ptr = output;
+    int bf_AW = ALIGN256(AW) / 2;
+    int bf_BW = ALIGN256(BW) / 2;
+    int bf_k = ALIGN256(k) / 2;
+    int bf_j = ALIGN256(j) / 2;
+    int sync_RHS = DONE, sync_LHS_256 = DONE, sync_LHS_128 = DONE, sync_out = DONE;
+    for (int ibw = 0; ibw < process_bw; ibw += 128) {
+        int iaw = 0;
+        int bf_iaw = 0;
+        if (ibw == 0) {
+            load_mat_0123_h_with_sync(input1_hbm, input1 + (bf_ibw * process_aw) / 32, 1, 1, AW, bf_BW, 0, 0, k, bf_j + bf_ibw,
+                process_aw, 128);
+        }
+        if ((ibw + 128) < process_bw && ibw % 256 == 0) {
+            dlc_sync(sync_RHS);
+            int next_bf_ibw = bf_ibw + 128;
+            sync_RHS = load_mat_0123_h_without_sync(input1_hbm, input1 + (next_bf_ibw * process_aw) / 32, 1, 1, AW, bf_BW, 0, 0, k, bf_j + next_bf_ibw,
+                process_aw, 128);
+        }
+        else if (ibw + 128 >= process_bw) {
+            dlc_sync(sync_RHS);
+        }
+        if (ibw == 0) {
+            for (; iaw < aw256; iaw += 256) {
+                if (iaw == 0) {
+                    load_mat_0123_h_with_sync(input0_hbm, input0 + (bf_iaw * process_ah) / 32, 1, 1, AH, bf_AW, 0, 0, i, bf_k + bf_iaw,
+                        process_ah, 128);
+                }
+                if ((ibw + 128) < process_bw && ibw % 256 == 0) {
+                    dlc_sync(sync_LHS_256);
+                    int next_bf_iaw = bf_iaw + 128;
+                    sync_LHS_256 = load_mat_0123_h_without_sync(input0_hbm, input0 + (next_bf_iaw * process_ah) / 32, 1, 1, AH, bf_AW, 0, 0, i, bf_k + next_bf_iaw,
+                        process_ah, 128);
+                }
+                else if (ibw + 128 >= process_bw) {
+                    dlc_sync(sync_LHS_256);
+                }
+                push_aw256_bf16(input1, process_aw, iaw, ibw, bf_ibw, Rscale);
+                //load datas in gain to GMR
+                m_fakemul(v_u32_move_b(0), 0, 0);
+                m_fakemul(v_u32_move_b(0), 0, 1);
+                matmul_LHS_aw256_bf16(input0, output_ptr, output_tmp_ptr, process_ah, process_aw, process_bw, iaw, bf_iaw, ibw, k, is_last_aw, Lscale);
+                bf_iaw += 128;
+            }
+            for (;iaw < process_aw; iaw += 128) {
+                if (iaw == aw256) {
+                    load_mat_0123_h_with_sync(input0_hbm, input0 + (bf_iaw * process_ah) / 32, 1, 1, AH, bf_AW, 0, 0, i, bf_k + bf_iaw,
+                        process_ah, 128);
+                    if ((ibw + 128) < process_bw && ibw % 256 == 0) {
+                        dlc_sync(sync_LHS_128);
+                        int next_bf_iaw = bf_iaw + 128;
+                        sync_LHS_128 = load_mat_0123_h_without_sync(input0_hbm, input0 + (next_bf_iaw * process_ah) / 32, 1, 1, AH, bf_AW, 0, 0, i, bf_k + next_bf_iaw,
+                            process_ah, 128);
+                    }
+                    else if (ibw + 128 >= process_bw) {
+                        dlc_sync(sync_LHS_128);
+                    }
+                }
+                push_aw128_bf16(input1, process_aw, process_bw, iaw, ibw, bf_ibw, Rscale);
+                //load datas in gain to GMR
+                m_fakemul(v_u32_move_b(0), 0, 0);
+                matmul_LHS_aw128_bf16(input0, output_ptr, output_tmp_ptr, process_ah, process_aw, process_bw, iaw, bf_iaw, ibw, bf_ibw, k, is_last_aw, Lscale);
+            }
+        }
+        else {
+            for (; iaw < aw256; iaw += 256) {
+                push_aw256_bf16(input1, process_aw, iaw, ibw, bf_ibw, Rscale);
+                //load datas in gain to GMR
+                m_fakemul(v_u32_move_b(0), 0, 0);
+                m_fakemul(v_u32_move_b(0), 0, 1);
+                matmul_LHS_aw256_bf16(input0, output_ptr, output_tmp_ptr, process_ah, process_aw, process_bw, iaw, bf_iaw, ibw, k, is_last_aw, Lscale);
+                bf_iaw += 128;
+            }
+            for (;iaw < process_aw; iaw += 128) {
+                push_aw128_bf16(input1, process_aw, process_bw, iaw, ibw, bf_ibw, Rscale);
+                //load datas in gain to GMR
+                m_fakemul(v_u32_move_b(0), 0, 0);
+                matmul_LHS_aw128_bf16(input0, output_ptr, output_tmp_ptr, process_ah, process_aw, process_bw, iaw, bf_iaw, ibw, bf_ibw, k, is_last_aw, Lscale);
+            }
+        }
+        if ((ibw % 256 || ibw + 128 >= process_bw) && is_last_aw) {
+            dlc_sync(sync_out);
+            sync_out = store_mat_0123_h_without_sync(output_tmp_ptr, output_hbm, 1, 1, AH, bf_BW, 0, 0, i, bf_j + bf_ibw, process_ah, 128);
+        }
+
+        output_ptr = output_ptr + process_ah * 4;
+        if (ibw % 256) {
+            bf_ibw += 128;
+            output_tmp_ptr = output_tmp_ptr + process_ah * 4;
+        }
+    }
+    return sync_out;
+}
+
+inline void matmul_gain_2pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int add_src_flag, float8_128 scale) {
+    int n = (ah + 7) / 8;
+    int m = min(12, n);
+    int stride = 1;
+    int bw128 = ALIGN128(bw);
+#pragma unroll
+    for (int i = 0; i < m; i++) {
+        int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
+        float8_128 left0 = load8_128_stride(AoffsetPgx0, 1, A);
+        short8_128 x1 = unpack_16b(as_int(left0), 0);
+        short8_128 x2 = unpack_16b(as_int(left0), 1);
+        m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
+        m_matmul_single(bfloat16_to_float(x2) * scale, 0, 1);
+    }
+
+#pragma unroll
+    for (int i = 12; i < n; i++) {
+        int Coffset = (i - 12) * 32;
+        float8_128 res = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, 255, C);
+
+        int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
+        float8_128 left0 = load8_128_stride(AoffsetPgx0, 1, A);
+        short8_128 x1 = unpack_16b(as_int(left0), 0);
+        short8_128 x2 = unpack_16b(as_int(left0), 1);
+        m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
+        m_matmul_single(bfloat16_to_float(x2) * scale, 0, 1);
+
+        float8_128 ret0 = m_pop_mrf(0);
+        float8_128 ret1 = m_pop_mrf(1);
+
+        res = res + ret0;
+        res = res + ret1;
+        store8_128_stride_stmk(Coffset, stride, C, res, 255);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, 1, 255, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(res, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res)));
+        }
+    }
+
+#pragma unroll
+    for (int i = n - m; i < n - 1; i++) {
+        int Coffset = i * 32;
+        float8_128 res = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, 255, C);
+        float8_128 ret0 = m_pop_mrf(0);
+        float8_128 ret1 = m_pop_mrf(1);
+        res = res + ret0;
+        res = res + ret1;
+        store8_128_stride_stmk(Coffset, stride, C, res, 255);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, 1, 255, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(res, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res)));
+        }
+    }
+    if (m != 0) {
+        int i = n - 1;
+        int h = min(ah - i * 8, 8);
+        int mask = pre_exp2(h);
+        int Coffset = i * 32;
+        float8_128 res = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, mask, C);
+        float8_128 ret0 = m_pop_mrf(0);
+        float8_128 ret1 = m_pop_mrf(1);
+        res = res + ret0;
+        res = res + ret1;
+        store8_128_stride_stmk(Coffset, stride, C, res, mask);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, 1, mask, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, mask, D, as_float(float_to_bfloat16(res, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, mask, D, as_float(float_to_bfloat16(v_u32_move_f(0), res)));
+        }
+    }
+}
+
+inline void matmul_gain_1pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int bf_ibw, int add_src_flag, float8_128 scale) {
+    int n = (ah + 7) / 8;
+    int m = min(12, n);
+    int stride = 1;
+    int bw128 = ALIGN128(bw);
+    int is_hi = (iaw / 128) % 2;
+#pragma unroll
+    for (int i = 0; i < m; i++) {
+        int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
+        float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
+        short8_128 x1;
+        if (is_hi == 0) x1 = unpack_16b(as_int(left0), 0);
+        else x1 = unpack_16b(as_int(left0), 1);
+        m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
+    }
+#pragma unroll
+    for (int i = 12; i < n; i++) {
+        int Coffset = (i - 12) * 32;
+        float8_128 res0 = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, 255, C);
+        int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
+        float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
+        short8_128 x1;
+        if (is_hi == 0) x1 = unpack_16b(as_int(left0), 0);
+        else x1 = unpack_16b(as_int(left0), 1);
+        m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
+
+        float8_128 ret0 = m_pop_mrf(0);
+
+        res0 = res0 + ret0;
+
+        store8_128_stride_stmk(Coffset, stride, C, res0, 255);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, stride, 255, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(res0, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res0)));
+        }
+    }
+#pragma unroll
+    for (int i = n - m; i < n - 1; i++) {
+        int Coffset = i * 32;
+        float8_128 res0 = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, 255, C);
+        float8_128 ret0 = m_pop_mrf(0);
+        res0 = res0 + ret0;
+
+        store8_128_stride_stmk(Coffset, stride, C, res0, 255);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, stride, 255, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(res0, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res0)));
+        }
+    }
+    if (m != 0) {
+        int i = n - 1;
+        int h = min(ah - i * 8, 8);
+        int mask = pre_exp2(h);
+        int Coffset = i * 32;
+        float8_128 res0 = (iaw == 0 && add_src_flag == 0)
+            ? v_u32_move_f(0.0)
+            : load8_128_stride_with_ldmask(Coffset, stride, mask, C);
+        float8_128 ret0 = m_pop_mrf(0);
+        res0 = res0 + ret0;
+
+        store8_128_stride_stmk(Coffset, stride, C, res0, mask);
+        if (ibw % 256) {
+            float8_128 res0_lo = load8_128_stride_with_ldmask(Coffset, stride, mask, C - ah * 4);
+            store8_128_stride_with_stmask(Coffset, 1, mask, D, as_float(float_to_bfloat16(res0, res0_lo)));
+        }
+        else if (ibw == bw128 - 128) {
+            store8_128_stride_with_stmask(Coffset, 1, mask, D, as_float(float_to_bfloat16(v_u32_move_f(0), res0)));
+        }
+    }
+}
+
+inline void matmul_LHS_aw256_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int add_src_flag, int is_last_aw, float8_128 scale) {
+    if (is_last_aw && iaw + 256 >= aw)
+        matmul_gain_2pgx_no_pack_opt_store_rest_bf16(A, C, D, ah, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, scale);
+        // matmul_gain_2pgx_bf16_no_extra_space(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, scale);
+    else
+        matmul_gain_2pgx_no_pack_opt_rest_bf16(A, C, D, ah, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, scale);
+}
+
+inline void matmul_LHS_aw128_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::tensor D, int ah, int aw, int bw, int iaw, int bf_iaw, int ibw, int bf_ibw, int add_src_flag, int is_last_aw, float8_128 scale) {
+    if (is_last_aw && iaw + 128 >= aw)
+        matmul_gain_no_pack_opt_store_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, scale);
+        // matmul_gain_1pgx_bf16_no_extra_space(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, scale);
+    else
+        matmul_gain_no_pack_opt_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, scale);
+}
+
+inline void matmul_all_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::tensor B, SIM_X86::tensor C, int ah, int aw, int bw, int add_src_flag, int is_last_aw, float Lscale, float Rscale) {
+    int aw256 = aw & 0xffffff00;
+    int bf_ibw = 0;
+    SIM_X86::tensor D = C;
+    for (int ibw = 0; ibw < bw; ibw += 128) {
+        int iaw = 0;
+        int bf_iaw = 0;
+        for (; iaw < aw256; iaw += 256) {
+            push_aw256_bf16(B, aw, iaw, ibw, bf_ibw, Rscale);
+            //load datas in gain to GMR
+            m_fakemul(v_u32_move_b(0), 0, 0);
+            m_fakemul(v_u32_move_b(0), 0, 1);
+            matmul_LHS_aw256_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, add_src_flag, is_last_aw, Lscale);
+            bf_iaw += 128;
+        }
+        for (;iaw < aw; iaw += 128) {
+            push_aw128_bf16(B, aw, bw, iaw, ibw, bf_ibw, Rscale);
+            //load datas in gain to GMR
+            m_fakemul(v_u32_move_b(0), 0, 0);
+            matmul_LHS_aw128_bf16(A, C, D, ah, aw, bw, iaw, bf_iaw, ibw, bf_ibw, add_src_flag, is_last_aw, Lscale);
+        }
+        C = C + ah * 4;
+        if (ibw % 256) {
+            bf_ibw += 128;
+            D = D + ah * 4;
+        }
+    }
+}
 #endif
