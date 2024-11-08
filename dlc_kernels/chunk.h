@@ -3,7 +3,7 @@
 #include "../typehint.h"
 
 #include "math.h"
-// 1. unary f32算子不需要分块逻辑，直接使用SIM_X86::DLCMem中的size就行
+// 1. unary f32算子不需要分块逻辑，直接使用DLCMem中的size就行
 //    unary bf16算子，因为目前没法处理非最后一维的整数倍的情况，所以需要计算一下一次性可以做多少行
 inline int CalcVMemBlockSizeBF16Evenly(int height, int width, int vmemSize, int TensorNum) {
     int k = height * width * TensorNum;

@@ -15,16 +15,16 @@ namespace kernel {
     {
         // double buffer for flatten SIM_X86::tensor, split into two xys, including padding
         // block_sizebytes: size of one block in bytes, 4096B aligned
-        Tensor1D(SIM_X86::DLCMem* mem_info, int block_sizebytes, DLCTensor* input)
+        Tensor1D(SIM_X86::DLCMem* mem_info, int block_sizebytes, SIM_X86::DLCTensor* input)
         : _idx_prev(0), _init(1), _sync_counter(0), core_id(get_device_id()){
             _block_size512 = block_sizebytes / 4096 * 8;
             // vmem0
-            vmem.vmem0 = mem_info->vmem_addr;
-            mem_info->vmem_addr = (SIM_X86::tensor)((int)mem_info->vmem_addr + _block_size512 * 4);
+            vmem.vmem0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+            mem_info->vmem_addr = (mem_info->vmem_addr + _block_size512 * 4);
             mem_info->vmem_size -= _block_size512 * 512;
             // vmem1
-            vmem.vmem1 = mem_info->vmem_addr;
-            mem_info->vmem_addr = (SIM_X86::tensor)((int)mem_info->vmem_addr + _block_size512 * 4);
+            vmem.vmem1 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+            mem_info->vmem_addr = (mem_info->vmem_addr + _block_size512 * 4);
             mem_info->vmem_size -= _block_size512 * 512;
 
             // two xys
@@ -44,37 +44,37 @@ namespace kernel {
         }
 
         // prefetch
-        constexpr inline void _load_next(int next_idx, SIM_X86::tensor vmem_addr){
-            SIM_X86::tensor src_addr = (SIM_X86::tensor)(_hbm_addr + next_idx * _block_size512 * 4);
+        /* constexpr */ inline void _load_next(int next_idx, SIM_X86::tensor vmem_addr){
+            SIM_X86::tensor src_addr = *(SIM_X86::tensor*)(_hbm_addr + next_idx * _block_size512 * 4);
             SIM_X86::tensor dst_addr = vmem_addr;
             int dma_size = (next_idx == num_blocks - 1 ? _hbm_size512 - next_idx * _block_size512 : _block_size512);
-            // Print((char*)"load block: %d\n", next_idx);
+            // // Print((char*)"load block: %d\n", next_idx);
             vmem.handle = dlc_dma(src_addr, HBM, dst_addr, VMEM, dma_size * 128, 128, 128, 128, 7);
         }
 
-        constexpr inline void _store_curr(int next_idx, SIM_X86::tensor vmem_addr){
+        /* constexpr */ inline void _store_curr(int next_idx, SIM_X86::tensor vmem_addr){
             SIM_X86::tensor src_addr = vmem_addr;
-            SIM_X86::tensor dst_addr = (SIM_X86::tensor)(_hbm_addr + next_idx * _block_size512 * 4);
+            SIM_X86::tensor dst_addr = *(SIM_X86::tensor*)(_hbm_addr + next_idx * _block_size512 * 4);
             int dma_size = (next_idx == num_blocks - 1 ? _hbm_size512 - next_idx * _block_size512 : _block_size512);
-            // Print((char*)"store block: %d\n", vmem.idx);
+            // // Print((char*)"store block: %d\n", vmem.idx);
             vmem.handle = dlc_dma(src_addr, VMEM, dst_addr, HBM, dma_size * 128, 128, 128, 128, 7);
             _sync_counter += dma_size / 128;
         }
 
-        constexpr inline void _update_vmem(int idx){
+        /* constexpr */ inline void _update_vmem(int idx){
             vmem.idx = idx;
             vmem.w512 = idx == num_blocks - 1 ? _hbm_size512 - idx * _block_size512 : _block_size512;
             vmem.address = vmem.address == vmem.vmem0 ? vmem.vmem1 : vmem.vmem0;
             if (idx > 0) vmem.offset512 += _block_size512;
         }
 
-        constexpr inline void _sync_dma(){
+        /* constexpr */ inline void _sync_dma(){
             dlc_sync_gte(vmem.handle, _sync_counter);
             dlc_sync(vmem.handle);
             _sync_counter = 0;
         }
 
-        constexpr inline void load(){
+        /* constexpr */ inline void load(){
             _update_vmem(_idx_prev);
             if (_init){
                 _load_next(_idx_prev, vmem.address);
@@ -87,7 +87,7 @@ namespace kernel {
             _idx_prev = vmem.idx + 1;
         }
 
-        constexpr inline void store(){
+        /* constexpr */ inline void store(){
             // sync prev, issue curr, switch to next
             _sync_dma();
             _store_curr(vmem.idx, vmem.address);
@@ -138,18 +138,18 @@ namespace kernel {
         //   logical split direction
         // transposed:
         //   whether the SIM_X86::tensor is transposed
-        inline Tensor2D(SIM_X86::DLCMem* mem_info, int block_w_, int block_h_, SplitType split, int transposed, DLCTensor* t)
+        inline Tensor2D(SIM_X86::DLCMem* mem_info, int block_w_, int block_h_, SplitType split, int transposed, SIM_X86::DLCTensor* t)
         : _idx_w_prev(0), _idx_h_prev(0), _sync_counter(0), _init(1), _transposed(transposed), _itemsize(t->layout){
             // physical block size
             this->vmem.block_w = transposed ? block_h_ : block_w_;
             this->vmem.block_h = transposed ? block_w_ : block_h_;
             // vmem0, vmem1
-            this->vmem.vmem0 = mem_info->vmem_addr;
-            mem_info->vmem_addr = (SIM_X86::tensor)((int)mem_info->vmem_addr + vmem.block_w * vmem.block_h * _itemsize / 128);
+            this->vmem.vmem0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+            mem_info->vmem_addr = (mem_info->vmem_addr + vmem.block_w * vmem.block_h * _itemsize / 128);
             mem_info->vmem_size -= vmem.block_w * vmem.block_h * _itemsize;
             if (DOUBLEBUFFER){
-                this->vmem.vmem1 = mem_info->vmem_addr;
-                mem_info->vmem_addr = (SIM_X86::tensor)((int)mem_info->vmem_addr + vmem.block_w * vmem.block_h * _itemsize / 128);
+                this->vmem.vmem1 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+                mem_info->vmem_addr = (mem_info->vmem_addr + vmem.block_w * vmem.block_h * _itemsize / 128);
                 mem_info->vmem_size -= vmem.block_w * vmem.block_h * _itemsize;
             } else {
                 this->vmem.vmem1 = this->vmem.vmem0;
@@ -193,14 +193,14 @@ namespace kernel {
             this->_update_vmem(0,0);
         }
 
-        constexpr inline void _sync_dma(){
-            // Print((char*)"sync gte: %d\n", _sync_counter);
+        /* constexpr */ inline void _sync_dma(){
+            // // Print((char*)"sync gte: %d\n", _sync_counter);
             dlc_sync_gte(vmem.handle, _sync_counter);
             dlc_sync_clear(vmem.handle);
             _sync_counter = 0;
         }
 
-        constexpr inline void _update_vmem(int next_idx_w, int next_idx_h){
+        /* constexpr */ inline void _update_vmem(int next_idx_w, int next_idx_h){
             // switch to next vmem
             vmem.w = next_idx_w == num_blocks_w - 1 ? _hbm_w - next_idx_w * vmem.block_w : vmem.block_w;
             vmem.h = next_idx_h == num_blocks_h - 1 ? _hbm_h - next_idx_h * vmem.block_h : vmem.block_h;
@@ -209,39 +209,39 @@ namespace kernel {
             }
         }
 
-        constexpr inline void _load_next(int idx_w, int idx_h, SIM_X86::tensor  vmem_addr){
+        /* constexpr */ inline void _load_next(int idx_w, int idx_h, SIM_X86::tensor  vmem_addr){
             int x_offset = idx_w * vmem.block_w * _itemsize / 128;
             int y_offset = idx_h * vmem.block_h * _hbm_stride;
             // int vmem_w = idx_w == num_blocks_w - 1 ? _hbm_w - idx_w * vmem.block_w : vmem.block_w;
             // int vmem_h = idx_h == num_blocks_h - 1 ? _hbm_h - idx_h * vmem.block_h : vmem.block_h;
-            // Print((char*)"load block h: %d >>>>>>>>>>>>>>>>>>>>>>\n", idx_h);
-            // Print((char*)"load block w: %d\n", idx_w);
-            // Print((char*)"vmem.block_h: %d\n", vmem.block_h);
+            // // Print((char*)"load block h: %d >>>>>>>>>>>>>>>>>>>>>>\n", idx_h);
+            // // Print((char*)"load block w: %d\n", idx_w);
+            // // Print((char*)"vmem.block_h: %d\n", vmem.block_h);
             int curr_vmem_addr = (int)vmem_addr;
             for (int i = 0; i < vmem.block_w * _itemsize; i+=512){
                 vmem.handle = dlc_dma(
-                    (SIM_X86::tensor)(_hbm_addr + y_offset + x_offset + i / 128), HBM,
-                    (SIM_X86::tensor)(curr_vmem_addr + i / 128), VMEM,
+                    *(SIM_X86::tensor*)(_hbm_addr + y_offset + x_offset + i / 128), HBM,
+                    *(SIM_X86::tensor*)(curr_vmem_addr + i / 128), VMEM,
                     128*vmem.block_h,   // length
                     _hbm_stride * 32, vmem.block_w * _itemsize / 128 * 32, 128, 7
                 );
                 _sync_counter += vmem.block_h;
             }
-            // Print((char*)"sync_counter: %d\n", _sync_counter);
+            // // Print((char*)"sync_counter: %d\n", _sync_counter);
         }
 
-        constexpr inline void _store_curr(int idx_w, int idx_h, SIM_X86::tensor  vmem_addr){
+        /* constexpr */ inline void _store_curr(int idx_w, int idx_h, SIM_X86::tensor  vmem_addr){
             int x_offset = idx_w * vmem.block_w * _itemsize / 128;
             int y_offset = idx_h * vmem.block_h * _hbm_stride;
             // int vmem_w = idx_w == num_blocks_w - 1 ? _hbm_w - idx_w * vmem.block_w : vmem.block_w;
             // int vmem_h = idx_h == num_blocks_h - 1 ? _hbm_h - idx_h * vmem.block_h : vmem.block_h;
-            // Print((char*)"store block h: %d <<<<<<<<<<<<<<<<<<<<<<<\n", idx_h);
-            // Print((char*)"store block w: %d\n", idx_w);
+            // // Print((char*)"store block h: %d <<<<<<<<<<<<<<<<<<<<<<<\n", idx_h);
+            // // Print((char*)"store block w: %d\n", idx_w);
             int curr_vmem_addr = (int)vmem_addr;
             for (int i = 0; i < vmem.block_w * _itemsize; i+=512){
                 vmem.handle = dlc_dma(
-                    (SIM_X86::tensor)(curr_vmem_addr + i / 128), VMEM,
-                    (SIM_X86::tensor)(_hbm_addr + y_offset + x_offset + i / 128), HBM,
+                    *(SIM_X86::tensor*)(curr_vmem_addr + i / 128), VMEM,
+                    *(SIM_X86::tensor*)(_hbm_addr + y_offset + x_offset + i / 128), HBM,
                     128*vmem.block_h,   // length
                     vmem.block_w * _itemsize / 128 * 32, _hbm_stride * 32, 128, 7
                 );
@@ -249,7 +249,7 @@ namespace kernel {
             }
         }
 
-        constexpr inline void load(int next_idx_w_in, int next_idx_h_in){
+        /* constexpr */ inline void load(int next_idx_w_in, int next_idx_h_in){
             int next_idx_w = _transposed ? next_idx_h_in : next_idx_w_in;
             int next_idx_h = _transposed ? next_idx_w_in : next_idx_h_in;
             this->_update_vmem(_idx_w_prev, _idx_h_prev);
@@ -272,7 +272,7 @@ namespace kernel {
             _idx_h_prev = next_idx_h;
         }
 
-        constexpr inline void store(int next_idx_w_in, int next_idx_h_in){
+        /* constexpr */ inline void store(int next_idx_w_in, int next_idx_h_in){
             // sync prev, issue curr, switch to next
             int next_idx_w = _transposed ? next_idx_h_in : next_idx_w_in;
             int next_idx_h = _transposed ? next_idx_w_in : next_idx_h_in;

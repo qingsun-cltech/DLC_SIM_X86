@@ -7,7 +7,7 @@
 
 #include "math.h"
 // #include "typehint.h"
-#include "../ops/sync.h"
+#include "ops/sync.h"
 
 #ifndef SEND_SYNCFLAG
 #define SEND_SYNCFLAG 324

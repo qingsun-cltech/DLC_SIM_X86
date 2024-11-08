@@ -119,9 +119,9 @@ inline void Min(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_X86::
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -339,9 +339,9 @@ inline void Max(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_X86::
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -558,10 +558,10 @@ inline void Min_Max(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_X
     unsigned vmem_num = 4;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 3 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 3 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -825,9 +825,9 @@ inline void Min_no_broadcast(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_h
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -900,9 +900,9 @@ inline void Max_no_broadcast(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_h
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -974,9 +974,9 @@ inline void Min_Max_no_broadcast(SIM_X86::DLCMem* mem_info, SIM_X86::tensor inpu
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -1070,9 +1070,9 @@ inline void Min_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -1307,9 +1307,9 @@ inline void Max_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -1543,10 +1543,10 @@ inline void Min_Max_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, 
     unsigned vmem_num = 4;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 3 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 3 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -1836,9 +1836,9 @@ inline void Min_no_broadcast_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor inp
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -1938,9 +1938,9 @@ inline void Max_no_broadcast_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor inp
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -2035,9 +2035,9 @@ inline void Min_Max_no_broadcast_bf16(SIM_X86::DLCMem* mem_info, SIM_X86::tensor
     unsigned vmem_num = 3;
     unsigned vmemSize = available_vmemSize / vmem_num;
 
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -2163,9 +2163,9 @@ inline void Min_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_
     unsigned vmemSize = available_vmemSize / vmem_num;
     /* long */
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -2402,9 +2402,9 @@ inline void Max_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, SIM_
     unsigned vmemSize = available_vmemSize / vmem_num;
     //long
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -2638,10 +2638,10 @@ inline void Min_Max_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor input0_hbm, 
     unsigned vmemSize = available_vmemSize / vmem_num;
     //long
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 3 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 3 * vmemSize / 32);
 
     // 双 xys
     int use_xys;
@@ -2929,9 +2929,9 @@ inline void Min_no_broadcast_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor inp
     unsigned vmemSize = available_vmemSize / vmem_num;
     /* long */
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -3035,9 +3035,9 @@ inline void Max_no_broadcast_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor inp
     unsigned vmemSize = available_vmemSize / vmem_num;
     /* long */
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor output = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor output = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];
@@ -3137,9 +3137,9 @@ inline void Min_Max_no_broadcast_Long(SIM_X86::DLCMem* mem_info, SIM_X86::tensor
     unsigned vmemSize = available_vmemSize / vmem_num;
     /* long */
     vmemSize = vmemSize / 256 * 256;
-    SIM_X86::tensor input0 = (SIM_X86::tensor)mem_info->vmem_addr;
-    SIM_X86::tensor input1 = (SIM_X86::tensor)(mem_info->vmem_addr + vmemSize / 32);
-    SIM_X86::tensor input2 = (SIM_X86::tensor)(mem_info->vmem_addr + 2 * vmemSize / 32);
+    SIM_X86::tensor input0 = *(SIM_X86::tensor*)mem_info->vmem_addr;
+    SIM_X86::tensor input1 = *(SIM_X86::tensor*)(mem_info->vmem_addr + vmemSize / 32);
+    SIM_X86::tensor input2 = *(SIM_X86::tensor*)(mem_info->vmem_addr + 2 * vmemSize / 32);
     
     int dma_flag;
     int length = output_shape[0] * output_shape[1] * output_shape[2] * output_shape[3] * output_shape[4];

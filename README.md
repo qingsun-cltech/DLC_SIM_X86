@@ -18,6 +18,9 @@
 
 ```C++
 /* 在 runTest 上面实现这个 */
+#define DLC_X86
+#define DLC_SIM
+
 #ifdef DLC_X86
 #include "../../x86/matmul_t_pingpong.c"
 

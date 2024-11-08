@@ -6,8 +6,8 @@
 #define _H_X86_DLCCL_RDMA_
 
 #include "math.h"
-#include "../ops/sync.h"
-#include "../ops/rsync.h"
+#include "ops/sync.h"
+#include "ops/rsync.h"
 // #include "typehint.h"
 
 // used for local dma

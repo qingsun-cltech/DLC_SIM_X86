@@ -1340,7 +1340,7 @@ inline void push_gstf_1pgxw(SIM_X86::tensor B, int w, float scale){
     float8_128 pgx0_gain_5 = v_f32_ld_tnsr_st_msk(320, B, 1, 255);
     float8_128 pgx0_gain_6 = v_f32_ld_tnsr_st_msk(288, B, 1, 255);
     float8_128 pgx0_gain_7 = v_f32_ld_tnsr_st_msk(256, B, 1, 255);
-    // Print("pgx0_gain_0", pgx0_gain_0[10]);
+    // // Print("pgx0_gain_0", pgx0_gain_0[10]);
     pgx0_gain_0 = v_f32_sel(m, v_u32_move_f(0), pgx0_gain_0);
     pgx0_gain_1 = v_f32_sel(m, v_u32_move_f(0), pgx0_gain_1);
     pgx0_gain_2 = v_f32_sel(m, v_u32_move_f(0), pgx0_gain_2);
@@ -1359,7 +1359,7 @@ inline void push_gstf_1pgxw(SIM_X86::tensor B, int w, float scale){
     pgx0_gain_6 = pgx0_gain_6 * scale;
     pgx0_gain_7 = pgx0_gain_7 * scale;
 
-    // Print("pgx0_gain_0:%f\n", pgx0_gain_0);
+    // // Print("pgx0_gain_0:%f\n", pgx0_gain_0);
     push_gstf(pgx0_gain_0, 0);
     push_gstf(pgx0_gain_1, 0);
     push_gstf(pgx0_gain_2, 0);

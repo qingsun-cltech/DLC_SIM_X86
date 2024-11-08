@@ -3,20 +3,20 @@
 #include "../typehint.h"
 
 // #pragma once
-#include "../cxx/types.hpp"
-#include "../cxx/uint31.hpp"
+#include "cxx/types.hpp"
+#include "cxx/uint31.hpp"
 // #include "typehint.h"
 
 struct CxxTensor {
     Uint31 addr;
 
-    constexpr CxxTensor(unsigned address) : addr(address) {}
-    constexpr CxxTensor(Uint31 address) : addr(address) {}
-    constexpr CxxTensor(SIM_X86::tensor address) : addr((unsigned)address) {}
+    /* constexpr */ CxxTensor(unsigned address) : addr(address) {}
+    /* constexpr */ CxxTensor(Uint31 address) : addr(address) {}
+    /* constexpr */ CxxTensor(SIM_X86::tensor address) : addr((unsigned)address) {}
 
-    constexpr inline CxxTensor operator+(Uint31 off) { return CxxTensor(addr + off); }
+    /* constexpr */ inline CxxTensor operator+(Uint31 off) { return CxxTensor(addr + off); }
 
-    constexpr inline operator SIM_X86::tensor() { return (SIM_X86::tensor)addr.uval; }
+    /* constexpr */ inline operator SIM_X86::tensor() { return (SIM_X86::tensor)addr.uval; }
 };
 
 template <class O, class I> inline O bitAs(I);

@@ -867,7 +867,7 @@ inline void RepeatInterleaveArrayTensorDefaultBf16(SIM_X86::tensor input0_hbm,
 inline void RepeatInterleaveArrayIntDefaultScalar(SIM_X86::tensor input0_hbm, SIM_X86::tensor output_hbm,
                                                   SIM_X86::tensor input_smem, int SMEMSIZE,
                                                   int repeats, int dim0, int dim1) {
-  SIM_X86::tensor output_smem = (SIM_X86::tensor)((int)input_smem + SMEMSIZE / 128 / 2 * 128 * 4);
+  SIM_X86::tensor output_smem = (input_smem + SMEMSIZE / 128 / 2 * 128 * 4);
   for (int i = 0; i < dim1; ++i) {
     HBM2SMem(tensor_slice(input0_hbm, i * ALIGN128(dim0) / 32), input_smem, ALIGN128(dim0));
     for (int j = 0; j < dim0; ++j) {

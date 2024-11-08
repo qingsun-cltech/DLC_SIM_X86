@@ -14,37 +14,37 @@ typedef float8_128 (*reduceBinaryOp_t)(float8_128, float8_128);
 typedef float8_128 (*reduceUnaryOp_t)(float8_128);
 
 template <typename T>
-concept ReduceHasMap = requires {
+/* concept */ ReduceHasMap = /* requires */ {
     typename T::AccType;
     { T::map(float8_128{}) } -> Types::same_as<typename T::AccType>;
 };
 
 template <typename T>
-concept ReduceHasProject = requires {
+/* concept */ ReduceHasProject = /* requires */ {
     typename T::AccType;
     { T::project(typename T::AccType{}) } -> Types::same_as<float8_128>;
 };
 
 template <typename T>
-concept ReduceHasIdent = requires {
+/* concept */ ReduceHasIdent = /* requires */ {
     typename T::AccType;
     T::ident;
 };
 
 template <typename T>
-concept ReduceHasCombine = requires {
+/* concept */ ReduceHasCombine = /* requires */ {
     typename T::AccType;
     { T::combine(typename T::AccType{}, typename T::AccType{}) } -> Types::same_as<typename T::AccType>;
 };
 
 template <typename T>
-concept ReduceHasSingleRed = requires {
+/* concept */ ReduceHasSingleRed = /* requires */ {
     typename T::AccType;
     { T::reduce_combine(typename T::AccType{}) } -> Types::same_as<typename T::AccType>;
 };
 
 template <typename T>
-concept ReduceHasFifoRed = requires {
+/* concept */ ReduceHasFifoRed = /* requires */ {
     T::template reduce_combine_push<true>(float8_128{});
     T::template reduce_combine_push<false>(float8_128{});
     { T::template reduce_combine_pop<true>() } -> Types::same_as<float8_128>;
@@ -52,7 +52,7 @@ concept ReduceHasFifoRed = requires {
 };
 
 template <typename T>
-concept ReduceCalc = ReduceHasIdent<T> && ReduceHasCombine<T> && ReduceHasSingleRed<T>;
+/* concept */ ReduceCalc = ReduceHasIdent<T> && ReduceHasCombine<T> && ReduceHasSingleRed<T>;
 
 /*
 ```
@@ -140,7 +140,7 @@ inline void transform_vmem(CxxTensor vmem, const Uint31 size, reduceUnaryOp_t pr
 
 // [P, pR] => [1, pR]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_00010_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, CxxTensor vmem,
                              Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -170,7 +170,7 @@ inline void reduce_00010_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
                         v_s32_cmp(LS, v_u32_shr(get_core_id(), v_u32_move_i(7)), v_u32_move_i(curvh));
                     float8_128 rval =
                         load8_128_stride_ldmk((y2 * max_width + x2) / 32, max_width / 128, vmem, ldmk);
-                    if constexpr (ReduceHasMap<Calc>) {
+                    if /* constexpr */ (ReduceHasMap<Calc>) {
                         rval = Calc::map(rval);
                     }
                     float8_128 val =
@@ -183,7 +183,7 @@ inline void reduce_00010_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
             }
         }
     }
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         transform_vmem(vout, pR, Calc::project);
     }
     // _UNUSED volatile float s = vstore_wait(v_f32_ld_tnsr_st_msk((pR - 128) / 32, vout, 1, 1));
@@ -193,7 +193,7 @@ inline void reduce_00010_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
 
 // [P, pR] => [1, 1]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_00011_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, CxxTensor vmem,
                              Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -206,7 +206,7 @@ inline void reduce_00011_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
         Uint31 curl1024 = curl / 1024 * 1024;
         for (Uint31 j = 0; j < curl1024; j += 1024) {
             float8_128 rval = v_f32_ld_tnsr_b(j / 32, vmem);
-            if constexpr (ReduceHasMap<Calc>) {
+            if /* constexpr */ (ReduceHasMap<Calc>) {
                 rval = Calc::map(rval);
             }
             int8_128 ridxW;
@@ -219,7 +219,7 @@ inline void reduce_00011_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
             Uint31 curc = curl % 1024;
             int ldmk = (1 << (curc / 128)) - 1;
             float8_128 rval = v_f32_ld_tnsr_st_msk(curl1024 / 32, vmem, 1, ldmk);
-            if constexpr (ReduceHasMap<Calc>) {
+            if /* constexpr */ (ReduceHasMap<Calc>) {
                 rval = Calc::map(rval);
             }
             int8_128 ridxW;
@@ -234,7 +234,7 @@ inline void reduce_00011_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
     }
     acc = reduce8(acc, Calc::combine);
     acc = Calc::reduce_combine(acc);
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         acc = Calc::project(acc);
     }
     //     _UNUSED volatile float s = vstore_wait(acc);
@@ -245,7 +245,7 @@ inline void reduce_00011_hbm(CxxTensor in, CxxTensor out, Uint31 P, Uint31 R, Cx
 
 // [pR] => [1]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, CxxTensor vmem,
                              Uint31 vmemlen) {
     if (B <= 0) {
@@ -268,7 +268,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
         dlc_sync(syncS);
         int syncL = dlc_dma(in + b * pR / 32, IN_PLACE, vmem, VMEM, curb * pR, 128, 128, 128, 7);
         dlc_sync(syncL);
-        if constexpr (ReduceHasFifoRed<Calc>) {
+        if /* constexpr */ (ReduceHasFifoRed<Calc>) {
             Uint31 prefill = min(curb, 2);
             Uint31 fill = curb - prefill;
             for (Uint31 y = 0; y < prefill; ++y) {
@@ -279,7 +279,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
                     Uint31 curvw = min(R - x, 128);
                     bool8_128 curwmsk = v_s32_cmp(LS, premsk, v_u32_move_i(curvw));
                     float8_128 rval = load8_128_stride_ldmk((y * pR + x) / 32, pR / 128, vmem, ldmk);
-                    if constexpr (ReduceHasMap<Calc>) {
+                    if /* constexpr */ (ReduceHasMap<Calc>) {
                         rval = Calc::map(rval);
                     }
                     float8_128 val = v_f32_sel(curwmsk, bitAs<float8_128>(broadcast(Calc::ident)), rval);
@@ -297,7 +297,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
                         Uint31 curvw = min(R - x, 128);
                         bool8_128 curwmsk = v_s32_cmp(LS, premsk, v_u32_move_i(curvw));
                         float8_128 rval = load8_128_stride_ldmk((y * pR + x) / 32, pR / 128, vmem, ldmk);
-                        if constexpr (ReduceHasMap<Calc>) {
+                        if /* constexpr */ (ReduceHasMap<Calc>) {
                             rval = Calc::map(rval);
                         }
                         float8_128 val = v_f32_sel(curwmsk, bitAs<float8_128>(broadcast(Calc::ident)), rval);
@@ -309,7 +309,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
                     Uint31 curvh = min(curb - z, 8);
                     Uint31 ldmk = (1 << curvh) - 1;
                     float8_128 acc = Calc::template reduce_combine_pop<true>();
-                    if constexpr (ReduceHasProject<Calc>) {
+                    if /* constexpr */ (ReduceHasProject<Calc>) {
                         acc = Calc::project(acc);
                     }
                     v_f32_st_tnsr_st_msk(z * 128 / 32, vout, 1, ldmk, acc);
@@ -319,7 +319,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
                 Uint31 curvh = min(curb - z, 8);
                 Uint31 ldmk = (1 << curvh) - 1;
                 float8_128 acc = Calc::template reduce_combine_pop<true>();
-                if constexpr (ReduceHasProject<Calc>) {
+                if /* constexpr */ (ReduceHasProject<Calc>) {
                     acc = Calc::project(acc);
                 }
                 v_f32_st_tnsr_st_msk(z * 128 / 32, vout, 1, ldmk, acc);
@@ -333,14 +333,14 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
                     Uint31 curvw = min(R - x, 128);
                     bool8_128 curwmsk = v_s32_cmp(LS, premsk, v_u32_move_i(curvw));
                     float8_128 rval = load8_128_stride_ldmk((y * pR + x) / 32, pR / 128, vmem, ldmk);
-                    if constexpr (ReduceHasMap<Calc>) {
+                    if /* constexpr */ (ReduceHasMap<Calc>) {
                         rval = Calc::map(rval);
                     }
                     float8_128 val = v_f32_sel(curwmsk, bitAs<float8_128>(broadcast(Calc::ident)), rval);
                     acc = Calc::combine(acc, val);
                 }
                 acc = Calc::reduce_combine(acc);
-                if constexpr (ReduceHasProject<Calc>) {
+                if /* constexpr */ (ReduceHasProject<Calc>) {
                     acc = Calc::project(acc);
                 }
                 v_f32_st_tnsr_st_msk(y * 128 / 32, vout, 1, ldmk, acc);
@@ -355,7 +355,7 @@ inline void reduce_00001_hbm(CxxTensor in, CxxTensor out, Uint31 B, Uint31 R, Cx
 
 // [K, P, pR] => [1, P, 1]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_00101_hbm(CxxTensor in, CxxTensor out, Uint31 K, Uint31 P, Uint31 R, CxxTensor vmem,
                              Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -391,7 +391,7 @@ inline void reduce_00101_hbm(CxxTensor in, CxxTensor out, Uint31 K, Uint31 P, Ui
                         v_s32_cmp(LS, v_u32_shr(get_core_id(), v_u32_move_i(7)), v_u32_move_i(curvh));
                     float8_128 rval =
                         load8_128_stride_ldmk((y2 * max_width + x2) / 32, max_width / 128, vmem, ldmk);
-                    if constexpr (ReduceHasMap<Calc>) {
+                    if /* constexpr */ (ReduceHasMap<Calc>) {
                         rval = Calc::map(rval);
                     }
                     float8_128 val =
@@ -405,7 +405,7 @@ inline void reduce_00101_hbm(CxxTensor in, CxxTensor out, Uint31 K, Uint31 P, Ui
             }
         }
     }
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         transform_vmem(vout, voutlen, Calc::project);
     }
     // _UNUSED volatile float s = vstore_wait(v_f32_ld_tnsr_st_msk((voutlen - 128) / 32, vout, 1, 1));
@@ -415,7 +415,7 @@ inline void reduce_00101_hbm(CxxTensor in, CxxTensor out, Uint31 K, Uint31 P, Ui
 
 // [H, K, P, pR] => [1, K, 1, pR]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_01010_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Uint31 P, Uint31 R,
                              CxxTensor vmem, Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -452,7 +452,7 @@ inline void reduce_01010_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
                                 v_s32_cmp(LS, v_u32_shr(get_core_id(), v_u32_move_i(7)), v_u32_move_i(curvh));
                             float8_128 rval = load8_128_stride_ldmk((y2 * max_width + x2) / 32,
                                                                     max_width / 128, vmem, ldmk);
-                            if constexpr (ReduceHasMap<Calc>) {
+                            if /* constexpr */ (ReduceHasMap<Calc>) {
                                 rval = Calc::map(rval);
                             }
                             float8_128 val =
@@ -468,7 +468,7 @@ inline void reduce_01010_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
             }
         }
     }
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         transform_vmem(vout, voutlen, Calc::project);
     }
     // _UNUSED volatile float s = vstore_wait(v_f32_ld_tnsr_st_msk((voutlen - 128) / 32, vout, 1, 1));
@@ -478,7 +478,7 @@ inline void reduce_01010_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
 
 // [H, K, P, pR] => [1, K, 1, 1]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_01011_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Uint31 P, Uint31 R,
                              CxxTensor vmem, Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -517,7 +517,7 @@ inline void reduce_01011_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
                                 v_s32_cmp(LS, v_u32_shr(get_core_id(), v_u32_move_i(7)), v_u32_move_i(curvh));
                             float8_128 rval = load8_128_stride_ldmk((y2 * max_width + x2) / 32,
                                                                     max_width / 128, vmem, ldmk);
-                            if constexpr (ReduceHasMap<Calc>) {
+                            if /* constexpr */ (ReduceHasMap<Calc>) {
                                 rval = Calc::map(rval);
                             }
                             float8_128 val =
@@ -534,7 +534,7 @@ inline void reduce_01011_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
             }
         }
     }
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         transform_vmem(vout, voutlen, Calc::project);
     }
     // _UNUSED volatile float s = vstore_wait(v_f32_ld_tnsr_st_msk((voutlen - 128) / 32, vout, 1, 1));
@@ -544,7 +544,7 @@ inline void reduce_01011_hbm(CxxTensor in, CxxTensor out, Uint31 H, Uint31 K, Ui
 
 // [T, H, K, P, pR] => [1, H, 1, P, 1]
 template <class Calc, int IN_PLACE = HBM, int OUT_PLACE = HBM>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_10101_hbm(CxxTensor in, CxxTensor out, Uint31 T, Uint31 H, Uint31 K, Uint31 P, Uint31 R,
                              CxxTensor vmem, Uint31 vmemlen) {
     Uint31 pR = (R + 127) / 128 * 128;
@@ -584,7 +584,7 @@ inline void reduce_10101_hbm(CxxTensor in, CxxTensor out, Uint31 T, Uint31 H, Ui
                                 v_s32_cmp(LS, v_u32_shr(get_core_id(), v_u32_move_i(7)), v_u32_move_i(curvh));
                             float8_128 rval = load8_128_stride_ldmk((y2 * max_width + x2) / 32,
                                                                     max_width / 128, vmem, ldmk);
-                            if constexpr (ReduceHasMap<Calc>) {
+                            if /* constexpr */ (ReduceHasMap<Calc>) {
                                 rval = Calc::map(rval);
                             }
                             float8_128 val =
@@ -602,7 +602,7 @@ inline void reduce_10101_hbm(CxxTensor in, CxxTensor out, Uint31 T, Uint31 H, Ui
         }
     }
 
-    if constexpr (ReduceHasProject<Calc>) {
+    if /* constexpr */ (ReduceHasProject<Calc>) {
         transform_vmem(vout, voutlen, Calc::project);
     }
     // _UNUSED volatile float s = vstore_wait(v_f32_ld_tnsr_st_msk((voutlen - 128) / 32, vout, 1, 1));
@@ -626,8 +626,8 @@ inline void sqeeuze_low_cmem_in_hbm_out(CxxTensor cmem, Uint31 s2, Uint31 s1, Cx
     if (get_device_id() == 1) {
         return;
     }
-    // Print(const_cast<char *>("s2: %d\n"), s2.sval);
-    // Print(const_cast<char *>("s1: %d\n"), s1.sval);
+    // // Print(const_cast<char *>("s2: %d\n"), s2.sval);
+    // // Print(const_cast<char *>("s1: %d\n"), s1.sval);
     Uint31 ps1 = (s1 + 127) & (-128);
     for (Uint31 i2 = 0; i2 < s2; i2 += 1) {
         for (Uint31 i1 = 0; i1 < s1; i1 += 128) {
@@ -686,7 +686,7 @@ inline void get_sqeeuze_size(Uint31 d0, Uint31 d1, Uint31 d2, Uint31 d3, Uint31 
 
 // d0 need reduce
 template <class Calc>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_hbm_dimlist_2xys_sqeeuze(CxxTensor in, CxxTensor hbmout, Uint31 d0, Uint31 d1, Uint31 d2,
                                             Uint31 d3, Uint31 d4, Uint31 reduce_d0, Uint31 reduce_d1,
                                             Uint31 reduce_d2, Uint31 reduce_d3, Uint31 reduce_d4,
@@ -767,7 +767,7 @@ inline void reduce_hbm_dimlist_2xys_sqeeuze(CxxTensor in, CxxTensor hbmout, Uint
 }
 
 template <class Calc>
-    requires ReduceCalc<Calc>
+    /* requires */ ReduceCalc<Calc>
 inline void reduce_hbm_dimlist_2xys(CxxTensor in, CxxTensor out, Uint31 d0, Uint31 d1, Uint31 d2, Uint31 d3,
                                     Uint31 d4, Uint31 reduce_d0, Uint31 reduce_d1, Uint31 reduce_d2,
                                     Uint31 reduce_d3, Uint31 reduce_d4, CxxTensor vmem, Uint31 vmemlen,
@@ -821,7 +821,7 @@ inline void reduce_hbm_dimlist_2xys(CxxTensor in, CxxTensor out, Uint31 d0, Uint
 
     uint reducePat = (reduce_d4 << 4) | (reduce_d3 << 3) | (reduce_d2 << 2) | (reduce_d1 << 1) | reduce_d0;
 
-    // Print("reducePat: %d\n", reducePat);
+    // // Print("reducePat: %d\n", reducePat);
 
     if (reducePat == 0b00001) {
         Uint31 B = d4 * d3 * d2 * d1;

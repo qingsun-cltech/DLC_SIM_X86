@@ -791,7 +791,7 @@ inline void dequant_4bit_8_gptq(/*__attribute__((address_space(2)))*/ int8_128* 
 
                                                     ) {
   int8_128 qa = *q_0;
-//   Print("qa: %h\n",qa);
+//   // Print("qa: %h\n",qa);
 //   int8_128 q0 = ((qa & 0x000f000f) | c0);  // half2( q[0]      + 1024, q[1]      + 1024 )
   int8_128 q0_i = ((qa & 0xf) << 13) | 0x44800000;
   float8_128 q0 = *(float8_128*)(&q0_i);
@@ -821,14 +821,14 @@ inline void dequant_4bit_8_gptq(/*__attribute__((address_space(2)))*/ int8_128* 
   float8_128 q7 = *(float8_128*)(&q7_i);
 
 // if(get_device_id() == 0){
-//   Print("q0_i:%f \n",q0);
-//   Print("q1_i:%f \n",q1);
-//   Print("q2_i:%f \n",q2);
-//   Print("q3_i:%f \n",q3);
-//   Print("q4_i:%f \n",q4);
-//   Print("q5_i:%f \n",q5);
-//   Print("q6_i:%f \n",q6);
-//   Print("q7_i:%f \n",q7);
+//   // Print("q0_i:%f \n",q0);
+//   // Print("q1_i:%f \n",q1);
+//   // Print("q2_i:%f \n",q2);
+//   // Print("q3_i:%f \n",q3);
+//   // Print("q4_i:%f \n",q4);
+//   // Print("q5_i:%f \n",q5);
+//   // Print("q6_i:%f \n",q6);
+//   // Print("q7_i:%f \n",q7);
 // }
 
 

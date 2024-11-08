@@ -125,9 +125,9 @@ inline int8_128 from_padded_idx_1024(int8_128 idx, int dim0, int dim0_pad){
 }
 
 
-inline void strided_get(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max){
-    SIM_X86::tensor hbm_out = (SIM_X86::tensor )output_->address;
-    SIM_X86::tensor hbm_in = (SIM_X86::tensor )input_->address;
+inline void strided_get(SIM_X86::DLCTensor *input_, SIM_X86::DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max){
+    SIM_X86::tensor hbm_out = *(SIM_X86::tensor*)output_->address;
+    SIM_X86::tensor hbm_in = *(SIM_X86::tensor*)input_->address;
     
     int dim1_i = input_->dim1;
     int dim0_i = input_->dim0;
@@ -237,9 +237,9 @@ inline void strided_get(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor v
     }
 }
 
-inline void strided_get_bf16(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max){
-    SIM_X86::tensor hbm_out = (SIM_X86::tensor )output_->address;
-    SIM_X86::tensor hbm_in = (SIM_X86::tensor )input_->address;
+inline void strided_get_bf16(SIM_X86::DLCTensor *input_, SIM_X86::DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max){
+    SIM_X86::tensor hbm_out = *(SIM_X86::tensor*)output_->address;
+    SIM_X86::tensor hbm_in = *(SIM_X86::tensor*)input_->address;
     
     int dim0_i = input_->dim0;
     // int dim0_i_padded = input_->dim0_padded;
@@ -368,9 +368,9 @@ inline void strided_get_bf16(DLCTensor *input_, DLCTensor *output_, SIM_X86::ten
 }
 
 // smem handle
-inline void strided_get_long(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max, SIM_X86::tensor smem, int smem_idx_size){
-     SIM_X86::tensor hbm_out = (SIM_X86::tensor )output_->address;
-    SIM_X86::tensor hbm_in = (SIM_X86::tensor )input_->address;
+inline void strided_get_long(SIM_X86::DLCTensor *input_, SIM_X86::DLCTensor *output_, SIM_X86::tensor vmem, int vmem_max, SIM_X86::tensor smem, int smem_idx_size){
+     SIM_X86::tensor hbm_out = *(SIM_X86::tensor*)output_->address;
+    SIM_X86::tensor hbm_in = *(SIM_X86::tensor*)input_->address;
     
     int dim0_i = input_->dim0;
     int dim0_padded_i = input_->dim0_padded;
@@ -403,15 +403,15 @@ inline void strided_get_long(DLCTensor *input_, DLCTensor *output_, SIM_X86::ten
     // 将smem分成六份 smem_in_data占两份， smem_in_offset占一份，smem_out_data占两份， smem_out_offset占一份，
     smem_idx_size = smem_idx_size / 1024 * 1024;
 
-    SIM_X86::tensor smem_in_data  = (SIM_X86::tensor)(smem);
-    SIM_X86::tensor smem_in_offset = (SIM_X86::tensor)((int)smem_in_data + smem_idx_size * 4);
-    SIM_X86::tensor smem_out_data = (SIM_X86::tensor)((int)smem_in_offset + smem_idx_size * 4 * 2);
-    SIM_X86::tensor smem_out_offset = (SIM_X86::tensor)((int)smem_out_data + smem_idx_size * 4);
+    SIM_X86::tensor smem_in_data  = *(SIM_X86::tensor*)(smem);
+    SIM_X86::tensor smem_in_offset = (smem_in_data + smem_idx_size * 4);
+    SIM_X86::tensor smem_out_data = (smem_in_offset + smem_idx_size * 4 * 2);
+    SIM_X86::tensor smem_out_offset = (smem_out_data + smem_idx_size * 4);
 
 
     // vmem一批处理的size由smem决定，后续可能可以优化
-    SIM_X86::tensor vmem_in_offset = (SIM_X86::tensor)(vmem);
-    SIM_X86::tensor vmem_out_offset = (SIM_X86::tensor)((int)vmem_in_offset + vmem_max /32);
+    SIM_X86::tensor vmem_in_offset = *(SIM_X86::tensor*)(vmem);
+    SIM_X86::tensor vmem_out_offset = (vmem_in_offset + vmem_max /32);
 
 
 
@@ -454,9 +454,9 @@ inline void strided_get_long(DLCTensor *input_, DLCTensor *output_, SIM_X86::ten
     // SMem2HBM(smem_out_data, hbm_out, out_hbm_length);
 }
 
-inline void strided_unordered_set(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor vmem, SIM_X86::tensor smem, int smem_in_size){
-  SIM_X86::tensor hbm_out = (SIM_X86::tensor )output_->address;
-  SIM_X86::tensor hbm_in = (SIM_X86::tensor )input_->address;
+inline void strided_unordered_set(SIM_X86::DLCTensor *input_, SIM_X86::DLCTensor *output_, SIM_X86::tensor vmem, SIM_X86::tensor smem, int smem_in_size){
+  SIM_X86::tensor hbm_out = *(SIM_X86::tensor*)output_->address;
+  SIM_X86::tensor hbm_in = *(SIM_X86::tensor*)input_->address;
   
   int dim0_i = input_->dim0;
   // int dim1_i = input_->dim1;
@@ -525,7 +525,7 @@ inline void strided_unordered_set(DLCTensor *input_, DLCTensor *output_, SIM_X86
     }
     //将计算得到的下标和相应的数据传入smem中
     Vmem2SMem(vmem_in_index, smem_in_index, handle_size_vmem);
-    HBM2SMem(hbm_in + i / 32, (SIM_X86::tensor )smem_in_data, handle_size_vmem);
+    HBM2SMem(hbm_in + i / 32, *(SIM_X86::tensor*)smem_in_data, handle_size_vmem);
     hbm_address_min_next = smem_in_index[0];
     if(i == input_hbm_start){
       hbm_address_min_next = smem_in_index[src_storage_offset_rem];
@@ -596,9 +596,9 @@ inline void strided_unordered_set(DLCTensor *input_, DLCTensor *output_, SIM_X86
   }
 }
 
-inline void strided_ordered_set(DLCTensor *input_, DLCTensor *output_, SIM_X86::tensor vmem, SIM_X86::tensor smem, int smem_in_size){
-  SIM_X86::tensor hbm_out = (SIM_X86::tensor )output_->address;
-  SIM_X86::tensor hbm_in = (SIM_X86::tensor )input_->address;
+inline void strided_ordered_set(SIM_X86::DLCTensor *input_, SIM_X86::DLCTensor *output_, SIM_X86::tensor vmem, SIM_X86::tensor smem, int smem_in_size){
+  SIM_X86::tensor hbm_out = *(SIM_X86::tensor*)output_->address;
+  SIM_X86::tensor hbm_in = *(SIM_X86::tensor*)input_->address;
   
   int dim0_i = input_->dim0;
   // int dim1_i = input_->dim1;
@@ -669,7 +669,7 @@ inline void strided_ordered_set(DLCTensor *input_, DLCTensor *output_, SIM_X86::
     //将计算得到的下标和相应的数据传入smem中
 
     Vmem2SMem(vmem_in_index, smem_in_index, handle_size_vmem);
-    HBM2SMem(hbm_in + i / 32, (SIM_X86::tensor )smem_in_data, handle_size_vmem);
+    HBM2SMem(hbm_in + i / 32, *(SIM_X86::tensor*)smem_in_data, handle_size_vmem);
 
 
     hbm_address_min_next = smem_in_index[0];

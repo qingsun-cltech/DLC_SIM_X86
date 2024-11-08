@@ -6,7 +6,7 @@
 // #include "typehint.h"
 #include "permute.h"
 #include "libdevice.h"
-#include ".././libdevice/fdiv_rn_without_unary.h"
+#include "./libdevice/fdiv_rn_without_unary.h"
 
 #define BILINEAR 0
 #define NEAREST 1
@@ -17,7 +17,7 @@
 
 /**
  * Author: QingSun
- * Print single value in vreg by idx[0 ~ 1023], type: 0 -> float, 1 -> int
+ * // Print single value in vreg by idx[0 ~ 1023], type: 0 -> float, 1 -> int
 */
 inline void PrintVregSingle(float8_128 vreg, const int idx, const int type) {
   int subcore_rotate_count = idx / 128;
@@ -29,9 +29,9 @@ inline void PrintVregSingle(float8_128 vreg, const int idx, const int type) {
   m_rotate(vreg, -m_rotate_count, true);
 
   if (type == 0) {
-    Print("vreg = %f\n", vreg[0]);
+    // Print("vreg = %f\n", vreg[0]);
   } else {
-    Print("vreg = %d\n", vreg[0]);
+    // Print("vreg = %d\n", vreg[0]);
   }
 }
 

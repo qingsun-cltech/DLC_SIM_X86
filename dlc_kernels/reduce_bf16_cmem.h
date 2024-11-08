@@ -1194,7 +1194,7 @@ inline void reduce_hbm_twoxys(SIM_X86::tensor inhbm, SIM_X86::tensor outhbm, int
 //         SIM_X86::tensor vout = vmem + vmeminlen / 32;
         int inoff = 0;
         int outoff = 0;
-        // Print("totgroup_xys1 : %d\n",totgroup_xys1);
+        // // Print("totgroup_xys1 : %d\n",totgroup_xys1);
         for (int k = 0; k < totgroup_xys1; k += group) {
             int curgroup = min(totgroup_xys1 - k, group);
             int curin = curgroup * min_vin;
@@ -1202,8 +1202,8 @@ inline void reduce_hbm_twoxys(SIM_X86::tensor inhbm, SIM_X86::tensor outhbm, int
             int sync0 = dlc_dma(inhbm + inoff / 32 + device_id * totgroup_xys * d1 * pd_256 / 64, CMEM, vin, VMEM, curin, 128, 128, 128, 7);
             inoff += curin;
             dlc_sync(sync0);
-            // Print("curin : %d\n",curin);
-            // Print("vin value : %h\n",vin,VMEM,curin);
+            // // Print("curin : %d\n",curin);
+            // // Print("vin value : %h\n",vin,VMEM,curin);
             reduce_mid_fxcstore_twoxys(vin, outhbm + outoff / 32 + device_id * totgroup_xys * pd_256 / 64, curgroup, d1, 1, d0, reduceOpIdent, reduceOpbf16 ,map, combine, reduce_combine, project,
                        0, 0);
         }
@@ -1373,7 +1373,7 @@ inline void reduce_hbm_dimlist_twoxys(SIM_X86::tensor inhbm, SIM_X86::tensor out
         }
         topKeepDim = i;
     }
-    // Print("topKeepDim : value %d\n",topKeepDim);
+    // // Print("topKeepDim : value %d\n",topKeepDim);
     int insize[6] = {1, pd_256, pd_256 * d1, pd_256 * d1 * d2, pd_256 * d1 * d2 * d3, pd_256 * d1 * d2 * d3 * d4};
     int groupsize[6] = {pd_256 * d1 * d2 * d3 * d4, d1 * d2 * d3 * d4, d2 * d3 * d4, d3 * d4, d4, 1};
     int outdim[5] = {reduce_d0 ? 128 : pd_256, reduce_d1 ? 1 : d1, reduce_d2 ? 1 : d2, reduce_d3 ? 1 : d3,

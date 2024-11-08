@@ -119,14 +119,14 @@ inline void smallgranule_dma_2xys_value(float value, int xys0_small_granule_addr
     // =======================================
     int dst_stride0 = 1;
 
-    ((int *)((int)temp_smem))[0] = header;
-    ((int *)((int)temp_smem))[1] = src_sync_flag;
-    ((int *)((int)temp_smem))[2] = dst_sync_flag;
-    ((int *)((int)temp_smem))[3] = length;
-    ((int *)((int)temp_smem))[4] = src_ad;
-    ((int *)((int)temp_smem))[5] = dst_ad;
-    ((int *)((int)temp_smem))[6] = src_stride0;
-    ((int *)((int)temp_smem))[7] = dst_stride0;
+    temp_smem[0] = header;
+    temp_smem[1] = src_sync_flag;
+    temp_smem[2] = dst_sync_flag;
+    temp_smem[3] = length;
+    temp_smem[4] = src_ad;
+    temp_smem[5] = dst_ad;
+    temp_smem[6] = src_stride0;
+    temp_smem[7] = dst_stride0;
 
     smallgranule_dma_xys0_s_2_xys1_s(temp_smem);
 }
@@ -197,14 +197,14 @@ inline void smallgranule_dma_2xys(int idx, float value, int xys0_small_granule_a
     // =======================================
     int dst_stride0 = 1;
 
-    ((int *)((int)temp_smem))[0] = header;
-    ((int *)((int)temp_smem))[1] = src_sync_flag;
-    ((int *)((int)temp_smem))[2] = dst_sync_flag;
-    ((int *)((int)temp_smem))[3] = length;
-    ((int *)((int)temp_smem))[4] = src_ad;
-    ((int *)((int)temp_smem))[5] = dst_ad;
-    ((int *)((int)temp_smem))[6] = src_stride0;
-    ((int *)((int)temp_smem))[7] = dst_stride0;
+    temp_smem[0] = header;
+    temp_smem[1] = src_sync_flag;
+    temp_smem[2] = dst_sync_flag;
+    temp_smem[3] = length;
+    temp_smem[4] = src_ad;
+    temp_smem[5] = dst_ad;
+    temp_smem[6] = src_stride0;
+    temp_smem[7] = dst_stride0;
 
     smallgranule_dma_xys0_s_2_xys1_s(temp_smem);
 }

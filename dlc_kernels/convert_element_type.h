@@ -164,17 +164,17 @@ inline void f32To16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0, D
         int h = len / (bd0 / 2);
         if (out_dtype == dlc_fp16) {
             for (int i = 0; i < h; i++) {
-                __fp32Tofp16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32),
+                __fp32Tofp16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32),
                                  bd0 / 2, true);
             }
         } else if (out_dtype == dlc_bf16) {
             for (int i = 0; i < h; i++) {
-                __f32ToBf16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32),
+                __f32ToBf16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32),
                                 bd0 / 2, true);
             }
         } else if (out_dtype == dlc_int16) {
             for (int i = 0; i < h; i++) {
-                __f32Toi16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32),
+                __f32Toi16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32),
                                bd0 / 2, true);
             }
         }
@@ -190,7 +190,7 @@ inline void fp32Tofp16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __fp32Tofp16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __fp32Tofp16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                              true);
         }
     }
@@ -205,7 +205,7 @@ inline void fp32Tobf16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __f32ToBf16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __f32ToBf16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                             true);
         }
     }
@@ -220,7 +220,7 @@ inline void fp32Toint16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __f32Toi16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __f32Toi16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                            true);
         }
     }
@@ -286,7 +286,7 @@ inline void i32Tofp16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __i32Tofp16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __i32Tofp16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                             true);
         }
     }
@@ -301,7 +301,7 @@ inline void i32Tobf16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __i32ToBf16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __i32ToBf16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                             true);
         }
     }
@@ -316,7 +316,7 @@ inline void i32Toi16(SIM_X86::tensor mem, int len, int d0) {
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __i32Toi16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), bd0 / 2,
+            __i32Toi16_256((mem + i * d0 / 32), (mem + i * bd0 / 2 / 32), bd0 / 2,
                            true);
         }
     }
@@ -654,17 +654,17 @@ inline void _fp32To8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0, 
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         if (out_dtype == dlc_int8) {
             for (int i = 0; i < h; i++) {
-                __f32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4,
+                __f32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4,
                           d0, true);
             }
         } else if (out_dtype == dlc_bool) {
             for (int i = 0; i < h; i++) {
-                __f32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4,
+                __f32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4,
                             d0, true);
             }
         } else {
             for (int i = 0; i < h; i++) {
-                __f32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4,
+                __f32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4,
                              d0, true);
             }
         }
@@ -680,7 +680,7 @@ inline void fp32Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -695,7 +695,7 @@ inline void fp32Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -710,7 +710,7 @@ inline void fp32Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -725,7 +725,7 @@ inline void i32Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -740,7 +740,7 @@ inline void i32Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) {
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -755,7 +755,7 @@ inline void i32Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -822,7 +822,7 @@ inline void f16ToF32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __f16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __f16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
 }
@@ -1118,7 +1118,7 @@ inline void f16Toi32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __f16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __f16Toi32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
 }
@@ -1132,7 +1132,7 @@ inline void f16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __f16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __f16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -1143,7 +1143,7 @@ inline void f16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -1240,7 +1240,7 @@ inline void f16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __f16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __f16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     if (d0k128 % 4 == 0) {
@@ -1249,7 +1249,7 @@ inline void f16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -1264,7 +1264,7 @@ inline void f16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __f16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __f16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     if (d0k128 % 4 == 0) {
@@ -1273,7 +1273,7 @@ inline void f16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -1587,7 +1587,7 @@ inline void bf16Toi32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __bf16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __bf16Toi32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
 }
@@ -1601,7 +1601,7 @@ inline void bf16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __bf16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __bf16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -1612,7 +1612,7 @@ inline void bf16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -1708,7 +1708,7 @@ inline void bf16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __bf16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __bf16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -1719,7 +1719,7 @@ inline void bf16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -1734,7 +1734,7 @@ inline void bf16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int l
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __bf16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __bf16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -1745,7 +1745,7 @@ inline void bf16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int l
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __f32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __f32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -1855,7 +1855,7 @@ inline void i16ToF32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __i16ToF32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __i16ToF32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
 }
@@ -2060,7 +2060,7 @@ inline void i16Toi32(SIM_X86::tensor mem, int len, int d0) {
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __i16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)mem + i * d0 / 32), bd0 / 2);
+            __i16Toi32_128((mem + i * bd0 / 2 / 32), (mem + i * d0 / 32), bd0 / 2);
         }
     }
 }
@@ -2074,7 +2074,7 @@ inline void i16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __i16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __i16Toi32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -2085,7 +2085,7 @@ inline void i16Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -2170,7 +2170,7 @@ inline void i16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __i16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __i16Toi32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -2181,7 +2181,7 @@ inline void i16Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -2196,7 +2196,7 @@ inline void i16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN256(d0);
         int h = (len + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = h - 1; i >= 0; i--) {
-            __i16Toi32_128((SIM_X86::tensor )((int)mem + i * bd0 / 2 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 2);
+            __i16Toi32_128((mem + i * bd0 / 2 / 32), (dst + i * d0 / 32), bd0 / 2);
         }
     }
     d0 = ALIGN128(d0);
@@ -2207,7 +2207,7 @@ inline void i16Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN512(d0);
         int h = len_ / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -2376,7 +2376,7 @@ inline void i8ToF32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) {
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -2509,7 +2509,7 @@ inline void uint8ToF32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -2854,7 +2854,7 @@ inline void i8Toi32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) {
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3038,7 +3038,7 @@ inline void uint8Toi32(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3053,7 +3053,7 @@ inline void uint8Toi32_sdiv(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, i
         int bd0 = ALIGN512(d0);
         int h = soft_sdiv(len, bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3068,7 +3068,7 @@ inline void i8Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3078,7 +3078,7 @@ inline void i8Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -3093,7 +3093,7 @@ inline void i8Tof16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3103,7 +3103,7 @@ inline void i8Tof16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN256(d0);
         int h = (len_ + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __fp32Tofp16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __fp32Tofp16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                              true);
         }
     }
@@ -3118,7 +3118,7 @@ inline void i8Tobf16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3134,7 +3134,7 @@ inline void i8toi16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3144,7 +3144,7 @@ inline void i8toi16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int len_,
         int bd0 = ALIGN256(d0);
         int h = (len_ + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __i32Toi16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __i32Toi16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                            true);
         }
     }
@@ -3159,7 +3159,7 @@ inline void i8Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3169,7 +3169,7 @@ inline void i8Touint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3202,7 +3202,7 @@ inline void uint8Tof16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3212,7 +3212,7 @@ inline void uint8Tof16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN256(d0);
         int h = (len_ + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __fp32Tofp16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __fp32Tofp16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                              true);
         }
     }
@@ -3227,7 +3227,7 @@ inline void uint8Tobf16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int l
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8ToF32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8ToF32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3243,7 +3243,7 @@ inline void uint8toi16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3253,7 +3253,7 @@ inline void uint8toi16(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int le
         int bd0 = ALIGN256(d0);
         int h = (len_ + (bd0 / 2) - 1) / (bd0 / 2);
         for (int i = 0; i < h; i++) {
-            __i32Toi16_256((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 2 / 32), bd0 / 2,
+            __i32Toi16_256((mem + i * d0 / 32), (dst + i * bd0 / 2 / 32), bd0 / 2,
                            true);
         }
     }
@@ -3268,7 +3268,7 @@ inline void uint8Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3278,7 +3278,7 @@ inline void uint8Toi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0)
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3293,7 +3293,7 @@ inline void uint8Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __uint8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __uint8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                          true);
         }
     }
@@ -3303,7 +3303,7 @@ inline void uint8Tobool(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Tobool((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Tobool((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                         true);
         }
     }
@@ -3336,7 +3336,7 @@ inline void boolToi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3346,7 +3346,7 @@ inline void boolToi8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d0) 
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Toi8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Toi8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3361,7 +3361,7 @@ inline void boolTouint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = h - 1; i >= 0; i--) {
-            __i8Toi32((SIM_X86::tensor )((int)mem + i * bd0 / 4 / 32), (SIM_X86::tensor )((int)dst + i * d0 / 32), bd0 / 4, d0,
+            __i8Toi32((mem + i * bd0 / 4 / 32), (dst + i * d0 / 32), bd0 / 4, d0,
                       true);
         }
     }
@@ -3371,7 +3371,7 @@ inline void boolTouint8(SIM_X86::tensor mem, SIM_X86::tensor dst, int len, int d
         int bd0 = ALIGN512(d0);
         int h = (len + (bd0 / 4) - 1) / (bd0 / 4);
         for (int i = 0; i < h; i++) {
-            __i32Touint8((SIM_X86::tensor )((int)mem + i * d0 / 32), (SIM_X86::tensor )((int)dst + i * bd0 / 4 / 32), bd0 / 4, d0,
+            __i32Touint8((mem + i * d0 / 32), (dst + i * bd0 / 4 / 32), bd0 / 4, d0,
                          true);
         }
     }

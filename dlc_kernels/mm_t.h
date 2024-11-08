@@ -369,8 +369,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             m_transpose_packed_start(data0[0], 128, 0);
             data1[0] = load8_128_stride_ldmk(0, st, t1, 255);
             m_transpose_packed_start(data1[0], 128, 1);
-            // Print("The first vector loaded 0:%h\n", data0[0]);
-            // Print("The first vector loaded 1:%h\n", data1[0]);
+            // // Print("The first vector loaded 0:%h\n", data0[0]);
+            // // Print("The first vector loaded 1:%h\n", data1[0]);
             for (int index = 1; index < 7; index++) {
                 data0[index] = load8_128_stride_ldmk(0, st, tensor_slice(t0, index * 8 * st * 128 / 32), 255);
                 m_transpose_packed_mid(data0[index], 0);
@@ -382,8 +382,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             m_transpose_packed_end(data0[7], 0);
             data1[7] = load8_128_stride_ldmk(0, st, tensor_slice(t1, 7 * 8 * st * 128 / 32), 255);
             m_transpose_packed_end(data1[7], 1);
-            // Print("The last vector loaded 0:%h\n", data0[7]);
-            // Print("The last vector loaded 1:%h\n", data1[7]);
+            // // Print("The last vector loaded 0:%h\n", data0[7]);
+            // // Print("The last vector loaded 1:%h\n", data1[7]);
 
             float8_128 /*__attribute__((address_space(2)))*/ res01[16];
             for(int index = 0; index < 16; index++) {
@@ -405,8 +405,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             m_transpose_packed_start(data2[0], 128, 0);
             data3[0] = load8_128_stride_ldmk(0, st, t3, 255);
             m_transpose_packed_start(data3[0], 128, 1);
-            // Print("The first vector loaded 0:%h\n", data2[0]);
-            // Print("The first vector loaded 1:%h\n", data3[0]);
+            // // Print("The first vector loaded 0:%h\n", data2[0]);
+            // // Print("The first vector loaded 1:%h\n", data3[0]);
             for(int index = 1; index < 7; index++) {
                 data2[index] = load8_128_stride_ldmk(0, st, tensor_slice(t2, index * 8 * st * 128 / 32), 255);
                 m_transpose_packed_mid(data2[index], 0);
@@ -511,11 +511,11 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
                 float8_128 zero = v_u32_move_b(0);
                 float8_128 up = v_f32_sel(cmp, zero, res01_odd);
                 int cur_sth = min(cur_h - index * 8, 8);
-                Print("i:%d\n", i);
-                Print("j:%d\n", j);
-                Print("index:%d\n", index);
-                Print("addr:%d\n", index * 1024 + dstaddr + store_addr);
-                Print("up:%h\n", up);
+                // Print("i:%d\n", i);
+                // Print("j:%d\n", j);
+                // Print("index:%d\n", index);
+                // Print("addr:%d\n", index * 1024 + dstaddr + store_addr);
+                // Print("up:%h\n", up);
                 
                 store8_128_stride_stmk(8 * index * stride_dst / 32, store_st, tensor_slice(dst, (dstaddr + store_addr) / 32), up, (1 << cur_sth) - 1);
 

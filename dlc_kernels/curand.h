@@ -16,10 +16,10 @@ If a consistent curand behavior with CUDA is required, please use `curand_cuda.h
 
 */
 
-#include "../libdevice/fsqrt_rd_without_unary.h"
-#include "../libdevice/logf_without_unary.h"
-#include "../libdevice/sincosf.h"
-#include "../libdevice/uint2float_rz.h"
+#include "libdevice/fsqrt_rd_without_unary.h"
+#include "libdevice/logf_without_unary.h"
+#include "libdevice/sincosf.h"
+#include "libdevice/uint2float_rz.h"
 // #include "typehint.h"
 
 typedef struct _uint4 {
@@ -72,8 +72,8 @@ const int kPhiloxSB = 0xCD9E8D57;
 //     for (int i = 0; i < 4; ++i) {
 //         a_bytes[i] = (a >> (i * 8)) & 0xFF;
 //         b_bytes[i] = (b >> (i * 8)) & 0xFF;
-//         Print("a_bytes[i] : %h\n",a_bytes[i]);
-//         // Print("b_bytes[i] : %h\n",b_bytes[i]);
+//         // Print("a_bytes[i] : %h\n",a_bytes[i]);
+//         // // Print("b_bytes[i] : %h\n",b_bytes[i]);
 //     }
 
 //     // Perform multiplications and accumulate partial results
@@ -81,7 +81,7 @@ const int kPhiloxSB = 0xCD9E8D57;
 //     for (int i = 0; i < 4; ++i) {
 //         for (int j = 0; j < 4; ++j) {
 //             c[i + j] += a_bytes[i] * b_bytes[j];
-//             // Print("c[i + j] : %d\n",c[i + j]);
+//             // // Print("c[i + j] : %d\n",c[i + j]);
 //         }
 //     }
 

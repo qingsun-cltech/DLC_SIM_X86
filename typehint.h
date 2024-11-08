@@ -54,115 +54,7 @@ enum {
 enum { UNDONE = 0, DONE = 1 };
 /* end */
 
-
-struct float8_128 {
-  // std::array<float, 1024> data;
-
-  // float8_128() {}
-  // float8_128(int v) { data.fill(v); }
-  // float8_128(float v) { data.fill(v); }
-  // float8_128(double v) { data.fill(float(v)); }
-  
-  std::vector<float> data;
-
-  float8_128() : data(1024, 0.f) {}
-  float8_128(int v) : data(1024, v) {}
-  float8_128(unsigned int v) : data(1024, v) {}
-  float8_128(float v) : data(1024, v) {}
-  float8_128(double v) : data(1024, v) {}
-  float8_128(const float8_128& other) : data(other.data) {}
-
-  float8_128& operator=(float v) {
-    // std::fill(data.begin(), data.end(), v);
-    for (int i = 0; i < 1024; ++i) this->data[i] = v;
-    return *this;
-  }
-
-  float8_128& operator=(const float8_128& other) {
-    if (this != &other) {
-      this->data = other.data;
-    }
-    return *this;
-  }
-
-  float& operator[](std::size_t index) {
-    if (index >= data.size()) {
-      throw std::out_of_range("float& operator[]: Index out of range");
-    }
-    return data[index];
-  }
-
-  const float& operator[](std::size_t index) const {
-    if (index >= data.size()) {
-      throw std::out_of_range("const float& operator[]: Index out of range");
-    }
-    return data[index];
-  }
-
-  float8_128 operator+(float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = data[i] + x[i];
-    return res;
-  }
-
-  friend float8_128 operator+(const float& y, float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = y + x[i];
-    return res;
-  }
-
-  float8_128& operator+=(float8_128 x) {
-    for (int i = 0; i < 1024; ++i) this->data[i] += x[i];
-    return *this;
-  }
-
-  float8_128 operator-(const float8_128& x) const {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = data[i] - x[i];
-    return res;
-  }
-
-  friend float8_128 operator-(const float& y, float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = y - x[i];
-    return res;
-  }
-
-  float8_128 operator-() const {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = -this->data[i];
-    return res;
-  }
-
-  friend float8_128 operator*(const float& y, float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = y * x[i];
-    return res;
-  }
-
-  float8_128 operator*(float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = data[i] * x[i];
-    return res;
-  }
-
-  float8_128& operator*=(float8_128 x) {
-    for (int i = 0; i < 1024; ++i) this->data[i] *= x[i];
-    return *this;
-  }
-
-  friend float8_128 operator/(const float& y, float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = y / x[i];
-    return res;
-  }
-
-  float8_128 operator/(float8_128 x) {
-    float8_128 res = 0;
-    for (int i = 0; i < 1024; ++i) res[i] = data[i] / x[i];
-    return res;
-  }
-};
+struct float8_128;
 
 struct int8_128 {
   // std::array<int, 1024> data;
@@ -187,6 +79,17 @@ struct int8_128 {
     }
     return *this;
   }
+
+  /* 循环依赖了 */
+  // int8_128& operator=(const float8_128& other) {
+  //   if (this->data.size() != 1024) {
+  //     data.resize(1024, 0);
+  //   }
+  //   for (int i = 0; i < 1024; ++i) {
+  //     this->data[i] = other[i];
+  //   }
+  //   return *this;
+  // }
 
   int& operator[](std::size_t index) {
     if (index >= data.size()) {
@@ -314,6 +217,14 @@ struct int8_128 {
     return result;
   }
 
+  int8_128 operator*(const int8_128& other) const {
+    int8_128 result;
+    for (int i = 0; i < 1024; ++i) {
+      result[i] = this->data[i] * other[i];
+    }
+    return result;
+  }
+
   friend int8_128 operator*(int lhs, const int8_128& rhs) {
     int8_128 result;
     for (int i = 0; i < 1024; ++i) {
@@ -412,6 +323,14 @@ struct int8_128 {
     return result;
   }
 
+  int8_128 operator<<(const int8_128& other) const {
+    int8_128 result;
+    for (int i = 0; i < 1024; ++i) {
+      result[i] = this->data[i] << other[i];
+    }
+    return result;
+  }
+
   int8_128 operator>>(int other) const {
     int8_128 result;
     for (int i = 0; i < 1024; ++i) {
@@ -419,6 +338,138 @@ struct int8_128 {
     }
     return result;
   }
+
+  int8_128 operator>>(const int8_128& other) const {
+    int8_128 result;
+    for (int i = 0; i < 1024; ++i) {
+      result[i] = this->data[i] >> other[i];
+    }
+    return result;
+  }
+
+  int8_128& operator>>=(const int& other) {
+    for (int i = 0; i < 1024; ++i) {
+      this->data[i] >>= other;
+    }
+    return *this;
+  }
+};
+
+struct float8_128 {
+  // std::array<float, 1024> data;
+
+  // float8_128() {}
+  // float8_128(int v) { data.fill(v); }
+  // float8_128(float v) { data.fill(v); }
+  // float8_128(double v) { data.fill(float(v)); }
+  
+  std::vector<float> data;
+
+  float8_128() : data(1024, 0.f) {}
+  float8_128(float v) : data(1024, v) {}
+  float8_128(double v) : data(1024, static_cast<float>(v)) {}
+  float8_128(int v) : data(1024, static_cast<float>(v)) {}
+  float8_128(unsigned int v) : data(1024, static_cast<float>(v)) {}
+  float8_128(const float8_128& other) : data(other.data) {}
+  float8_128(const int8_128& other) {
+    for (int i = 0; i < 1024; ++i) this->data[i] = other[i];
+  }
+
+  float8_128& operator=(float v) {
+    // std::fill(data.begin(), data.end(), v);
+    for (int i = 0; i < 1024; ++i) this->data[i] = v;
+    return *this;
+  }
+
+  float8_128& operator=(const float8_128& other) {
+    if (this != &other) {
+      this->data = other.data;
+    }
+    return *this;
+  }
+
+  float& operator[](std::size_t index) {
+    if (index >= data.size()) {
+      throw std::out_of_range("float& operator[]: Index out of range");
+    }
+    return data[index];
+  }
+
+  const float& operator[](std::size_t index) const {
+    if (index >= data.size()) {
+      throw std::out_of_range("const float& operator[]: Index out of range");
+    }
+    return data[index];
+  }
+
+  float8_128 operator+(float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = data[i] + x[i];
+    return res;
+  }
+
+  friend float8_128 operator+(const float& y, float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = y + x[i];
+    return res;
+  }
+
+  float8_128& operator+=(float8_128 x) {
+    for (int i = 0; i < 1024; ++i) this->data[i] += x[i];
+    return *this;
+  }
+
+  float8_128 operator-(const float8_128& x) const {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = data[i] - x[i];
+    return res;
+  }
+
+  friend float8_128 operator-(const float& y, float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = y - x[i];
+    return res;
+  }
+
+  float8_128 operator-() const {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = -this->data[i];
+    return res;
+  }
+
+  friend float8_128 operator*(const float& y, float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = y * x[i];
+    return res;
+  }
+
+  float8_128 operator*(float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = data[i] * x[i];
+    return res;
+  }
+
+  float8_128& operator*=(float8_128 x) {
+    for (int i = 0; i < 1024; ++i) this->data[i] *= x[i];
+    return *this;
+  }
+
+  friend float8_128 operator/(const float& y, float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = y / x[i];
+    return res;
+  }
+
+  float8_128 operator/(float8_128 x) {
+    float8_128 res = 0;
+    for (int i = 0; i < 1024; ++i) res[i] = data[i] / x[i];
+    return res;
+  }
+};
+
+struct float2{
+  float8_128 x;
+  float8_128 y;
 };
 
 struct bool8_128 {
@@ -775,7 +826,7 @@ namespace SIM_X86 {
     }
 
     tensor operator+(const int64_t& off) const {
-      int nlen = this->data_size - off * 32 / 128 * 128;
+      int64_t nlen = this->data_size - off * 32 / 128 * 128;
       if (!(nlen >= 0 && nlen <= this->__LEN)) {
         printf("off = %ld, data_size = %ld, type = %d, data_ptr = %p, __PTR = %p, __LEN = %ld\n",
                off, this->data_size, this->type, this->data_ptr, this->__PTR, this->__LEN);
@@ -791,7 +842,7 @@ namespace SIM_X86 {
     }
 
     tensor operator-(const int64_t& off) const {
-      int nlen = this->data_size - off * 32 / 128 * 128;
+      int64_t nlen = this->data_size - off * 32 / 128 * 128;
       assert(nlen >= 0 && nlen <= this->__LEN);
 
       tensor re = *this;
@@ -803,7 +854,7 @@ namespace SIM_X86 {
     }
 
     tensor& operator+=(const int64_t& off) {
-      int nlen = this->data_size - off * 32 / 128 * 128;
+      int64_t nlen = this->data_size - off * 32 / 128 * 128;
       assert(nlen >= 0 && nlen <= this->__LEN);
     
       this->data_ptr += off * 32 / 128 * 128;
@@ -811,6 +862,22 @@ namespace SIM_X86 {
       if (this->type == 1)
         MIN_VMEM_SIZE = (MIN_VMEM_SIZE > this->data_size ? this->data_size : MIN_VMEM_SIZE);
       return *this;
+    }
+
+    tensor operator*(const int& off) const {
+      int64_t nlen = this->data_size - off * 32 / 128 * 128;
+      assert(nlen >= 0 && nlen <= this->__LEN);
+
+      tensor re = *this;
+      re.data_ptr += off * 32 / 128 * 128;
+      re.data_size -= off * 32 / 128 * 128;
+      if (this->type == 1)
+        MIN_VMEM_SIZE = (MIN_VMEM_SIZE > re.data_size ? re.data_size : MIN_VMEM_SIZE);
+      return re;
+    }
+
+    bool operator==(const tensor& other) const {
+      return (this->type == other.type) && (this->data_size == other.data_size);
     }
 
     float& operator[](const int64_t& index) {    
@@ -822,9 +889,9 @@ namespace SIM_X86 {
     }
   };
 
-  struct DLCTensor {
-    #define DLC_MAX_DIM 5
+  #define DLC_MAX_DIM 5
 
+  struct DLCTensor {
     // Tensor
     tensor* address;
     unsigned dtype;                // Tensor Data Type
@@ -841,7 +908,7 @@ namespace SIM_X86 {
     unsigned memory_format;  // Memory Format
     unsigned reserved;       // Reserved
 
-    DLCTensor() {}
+    DLCTensor() : address(nullptr) {}
 
     DLCTensor(tensor t, const syn::nn::Tensor& input, bool p = true) {
       this->address = new tensor(t);
@@ -859,6 +926,18 @@ namespace SIM_X86 {
     }
 
     ~DLCTensor() {
+      delete this->address;  // 注意析构时释放内存
+    }
+  };
+
+  struct DLCTensorLite {
+    // Tensor
+    tensor* address;
+    unsigned shape[DLC_MAX_DIM];   // Tensor Sizes (elements)
+
+    DLCTensorLite() : address(nullptr) {}
+
+    ~DLCTensorLite() {
       delete this->address;  // 注意析构时释放内存
     }
   };

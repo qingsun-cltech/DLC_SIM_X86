@@ -1270,7 +1270,7 @@ inline void reduce_hbm_dimlist_twoxys(SIM_X86::tensor inhbm, SIM_X86::tensor out
 //         }
 //         topKeepDim = i;
 //     }
-//     // Print("topKeepDim : value %d\n",topKeepDim);
+//     // // Print("topKeepDim : value %d\n",topKeepDim);
 //     int insize[6] = {1, pd_256, pd_256 * d1, pd_256 * d1 * d2, pd_256 * d1 * d2 * d3, pd_256 * d1 * d2 * d3 * d4};
 //     int groupsize[6] = {pd_256 * d1 * d2 * d3 * d4, d1 * d2 * d3 * d4, d2 * d3 * d4, d3 * d4, d4, 1};
 //     int outdim[5] = {reduce_d0 ? 128 : pd_256, reduce_d1 ? 1 : d1, reduce_d2 ? 1 : d2, reduce_d3 ? 1 : d3,

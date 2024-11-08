@@ -247,7 +247,7 @@ inline double8_128 ll2double(longlong8_128 x){
     //sinf.cpp中的是用f32比较的，这里改成s32的，应该不会有问题
     bool8_128 is_pos = v_s32_cmp(GTEQ, int64_hi_reg, 0);
     int8_128 sign_reg = v_u32_and(int64_hi_reg, v_u32_move_i(0x80000000)); // double的第0位代表符号位
-    // Print("sign_reg : %h", sign_reg);
+    // // Print("sign_reg : %h", sign_reg);
     // 把负数变为正数，正数=~(负数-1)
     /*实际值 -280453848227002
     int64(bin)  11111111111111110000000011101101   11000000000000000010001101000110
