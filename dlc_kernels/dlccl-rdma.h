@@ -8,7 +8,7 @@
 #include "math.h"
 #include "../ops/sync.h"
 #include "../ops/rsync.h"
-
+// #include "typehint.h"
 
 // used for local dma
 const int INCHIP_SYNCFLAG = 300;

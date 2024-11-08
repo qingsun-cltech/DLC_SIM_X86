@@ -7,7 +7,7 @@
 
 // https://stackoverflow.com/questions/30463616/payne-hanek-algorithm-implementation-in-c
 
-
+// #include "typehint.h"
 
 struct __sincosf_ph_dfloat {
     float8_128 hi;

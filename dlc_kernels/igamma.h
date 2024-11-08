@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #include "typehint.h"
 #include "libdevice.h"
 
 inline int8_128 _S(int a) { return v_u32_move_i(a); }

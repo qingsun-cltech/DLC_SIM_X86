@@ -5,7 +5,7 @@
 #include "align.h"
 #include "convert_element_type.h"
 #include "permute.h"
-
+// #include "typehint.h"
 
 /**
  * TODO: special judge for small cases(vmem is big enough)

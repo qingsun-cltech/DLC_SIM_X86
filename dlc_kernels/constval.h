@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 
 #define MIN_FLT -3.40282e+38f
 #define MAX_FLT 3.40282e+38f

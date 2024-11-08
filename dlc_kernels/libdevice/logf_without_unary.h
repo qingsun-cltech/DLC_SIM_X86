@@ -6,7 +6,7 @@
 #define _LOGF_WITHOUT_UNARY_H_X86_
 
 #include "function.h"
-
+// #include "typehint.h"
 #include "frcp_rd_without_unary.h"
 
 inline float8_128 __dlc_logf_without_unary(float8_128 a) {

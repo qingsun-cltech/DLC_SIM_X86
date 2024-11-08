@@ -6,7 +6,7 @@
 #define __MM_T_H_X86__
 
 #include "ldst.h"
-
+// #include "typehint.h"
 #include "nn.h"
 #include "bf16.h"
 #include "align.h"
@@ -61,7 +61,7 @@ inline void tile_trans_transfer2(SIM_X86::tensor src, SIM_X86::tensor dst, int s
 
             int cur_h = min(src_w - j - 128, 128);
             int kS = (cur_h + 7) / 8;
-            // #pragma unroll
+            // // #pragma unroll
             for (int i = 0; i < kS; i++) {
                 int cur_sth = min(cur_h - i * 8, 8);
                 float8_128 x0 = m_pop_trf(0);
@@ -71,7 +71,7 @@ inline void tile_trans_transfer2(SIM_X86::tensor src, SIM_X86::tensor dst, int s
                 store8_128_stride_stmk(i * 8 * store_st * 128 / 32, store_st,
                                        tensor_slice(dst, (store_addr1) / 32), x1, (1 << cur_sth) - 1);
             }
-            // #pragma unroll
+            // // #pragma unroll
             for (int i = kS; i < 16; i++) {
                 __attribute__((unused)) float8_128 x1 = m_pop_trf(1);
                 float8_128 x = m_pop_trf(0);
@@ -104,14 +104,14 @@ inline void tile_trans_transfer2(SIM_X86::tensor src, SIM_X86::tensor dst, int s
 
         int cur_h = min(src_w - j, 128);
         int kS = (cur_h + 7) / 8;
-        // #pragma unroll
+        // // #pragma unroll
         for (int i = 0; i < kS; i++) {
             int cur_sth = min(cur_h - i * 8, 8);
             float8_128 x0 = m_pop_trf(0);
             store8_128_stride_stmk(i * 8 * store_st * 128 / 32, store_st,
                                    tensor_slice(dst, (store_addr0) / 32), x0, (1 << cur_sth) - 1);
         }
-        // #pragma unroll
+        // // #pragma unroll
         for (int i = kS; i < 16; i++) {
             __attribute__((unused)) float8_128 x = m_pop_trf(0);
         }
@@ -363,8 +363,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t0 = tensor_slice(src, srcaddr / 32 + addr0 / 32);
             SIM_X86::tensor t1 = tensor_slice(src, srcaddr / 32 + addr1 / 32);
 
-            float8_128 __attribute__((address_space(2))) data0[8];
-            float8_128 __attribute__((address_space(2))) data1[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data0[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data1[8];
             data0[0] = load8_128_stride_ldmk(0, st, t0, 255);
             m_transpose_packed_start(data0[0], 128, 0);
             data1[0] = load8_128_stride_ldmk(0, st, t1, 255);
@@ -385,7 +385,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             // Print("The last vector loaded 0:%h\n", data0[7]);
             // Print("The last vector loaded 1:%h\n", data1[7]);
 
-            float8_128 __attribute__((address_space(2))) res01[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res01[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);
@@ -399,8 +399,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t2 = tensor_slice(src, srcaddr / 32 + addr2 / 32);
             SIM_X86::tensor t3 = tensor_slice(src, srcaddr / 32 + addr3 / 32);
 
-            float8_128 __attribute__((address_space(2))) data2[8];
-            float8_128 __attribute__((address_space(2))) data3[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data2[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data3[8];
             data2[0] = load8_128_stride_ldmk(0, st, t2, 255);
             m_transpose_packed_start(data2[0], 128, 0);
             data3[0] = load8_128_stride_ldmk(0, st, t3, 255);
@@ -419,7 +419,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data3[7] = load8_128_stride_ldmk(0, st, tensor_slice(t3, 7 * 8 * st * 128 / 32), 255);
             m_transpose_packed_end(data3[7], 1);
 
-            float8_128 __attribute__((address_space(2))) res23[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res23[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);
@@ -471,7 +471,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             int push_num = (rest_h + 7) / 8;
             SIM_X86::tensor t0 = tensor_slice(src, srcaddr / 32 + addr0 / 32);
 
-            float8_128 __attribute__((address_space(2))) data0[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data0[8];
             int cur_sth = min(rest_h, 8);
             data0[0] = load8_128_stride_ldmk(0, st, t0, (1 << cur_sth) - 1);
 
@@ -487,7 +487,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data0[7] = load8_128_stride_ldmk(0, st, tensor_slice(t0, (push_num - 1) * 8 * st * 128 / 32), (1 << cur_sth) - 1);
             m_transpose_packed_end(data0[7], 0);
             
-            float8_128 __attribute__((address_space(2))) res01[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res01[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 x0 = __$F(__$S(x0) << 16);
@@ -532,8 +532,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t0 = tensor_slice(src, srcaddr / 32 + addr0 / 32);
             SIM_X86::tensor t2 = tensor_slice(src, srcaddr / 32 + addr2 / 32);
 
-            float8_128 __attribute__((address_space(2))) data0[8];
-            float8_128 __attribute__((address_space(2))) data2[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data0[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data2[8];
             int push_num = (rest_h - 64 + 7) / 8;
             data0[0] = load8_128_stride_ldmk(0, st, t0, 255);
             m_transpose_packed_start(data0[0], 128, 0);
@@ -560,8 +560,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data2[7] = load8_128_stride_ldmk(0, st, tensor_slice(t2, (push_num - 1) * 8 * st * 128 / 32), (1 << cur_sth) - 1);
             m_transpose_packed_end(data2[7], 1);
 
-            float8_128 __attribute__((address_space(2))) res01[16];
-            float8_128 __attribute__((address_space(2))) res23[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res01[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res23[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);
@@ -611,8 +611,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t0 = tensor_slice(src, srcaddr / 32 + addr0 / 32);
             SIM_X86::tensor t1 = tensor_slice(src, srcaddr / 32 + addr1 / 32);
 
-            float8_128 __attribute__((address_space(2))) data0[8];
-            float8_128 __attribute__((address_space(2))) data1[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data0[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data1[8];
             data0[0] = load8_128_stride_ldmk(0, st, t0, 255);
             m_transpose_packed_start(data0[0], 128, 0);
             int cur_sth = min(rest_h - 128, 8);
@@ -639,7 +639,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data1[7] = load8_128_stride_ldmk(0, st, tensor_slice(t1, (push_num - 1) * 8 * st * 128 / 32), (1 << cur_sth) - 1);
             m_transpose_packed_end(data1[7], 1);
             
-            float8_128 __attribute__((address_space(2))) res01[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res01[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);
@@ -651,7 +651,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             int addr2 = (i + 64) * stride_src + j / 2;
             SIM_X86::tensor t2 = tensor_slice(src, srcaddr / 32 + addr2 / 32);
 
-            float8_128 __attribute__((address_space(2))) data2[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data2[8];
             data2[0] = load8_128_stride_ldmk(0, st, t2, 255);
             m_transpose_packed_start(data2[0], 128, 0);
 
@@ -663,7 +663,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data2[7] = load8_128_stride_ldmk(0, st, tensor_slice(t2, 7 * 8 * st * 128 / 32), 255);
             m_transpose_packed_end(data2[7], 0);
 
-            float8_128 __attribute__((address_space(2))) res23[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res23[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 x0 = __$F(__$S(x0) << 16);
@@ -709,8 +709,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t0 = tensor_slice(src, srcaddr / 32 + addr0 / 32);
             SIM_X86::tensor t1 = tensor_slice(src, srcaddr / 32 + addr1 / 32);
 
-            float8_128 __attribute__((address_space(2))) data0[8];
-            float8_128 __attribute__((address_space(2))) data1[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data0[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data1[8];
             data0[0] = load8_128_stride_ldmk(0, st, t0, 255);
             m_transpose_packed_start(data0[0], 128, 0);
             data1[0] = load8_128_stride_ldmk(0, st, t1, 255);
@@ -728,7 +728,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data1[7] = load8_128_stride_ldmk(0, st, tensor_slice(t1, 7 * 8 * st * 128 / 32), 255);
             m_transpose_packed_end(data1[7], 1);
 
-            float8_128 __attribute__((address_space(2))) res01[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res01[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);
@@ -742,8 +742,8 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             SIM_X86::tensor t2 = tensor_slice(src, srcaddr / 32 + addr2 / 32);
             SIM_X86::tensor t3 = tensor_slice(src, srcaddr / 32 + addr3 / 32);
 
-            float8_128 __attribute__((address_space(2))) data2[8];
-            float8_128 __attribute__((address_space(2))) data3[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data2[8];
+            float8_128 /*__attribute__((address_space(2)))*/ data3[8];
             int push_num = (rest_h - 192 + 7) / 8;
 
             data2[0] = load8_128_stride_ldmk(0, st, t2, 255);
@@ -770,7 +770,7 @@ inline void tile_trans_transfer_bf16(SIM_X86::tensor src, SIM_X86::tensor dst, i
             data3[7] = load8_128_stride_ldmk(0, st, tensor_slice(t3, (push_num - 1) * 8 * st * 128 / 32), (1 << cur_sth) - 1);
             m_transpose_packed_end(data3[7], 1);            
 
-            float8_128 __attribute__((address_space(2))) res23[16];
+            float8_128 /*__attribute__((address_space(2)))*/ res23[16];
             for(int index = 0; index < 16; index++) {
                 float8_128 x0 = m_pop_trf(0);
                 float8_128 x1 = m_pop_trf(1);

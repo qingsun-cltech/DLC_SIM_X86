@@ -6,14 +6,14 @@
 #define _PIPELINE_UNARY_H_X86_
 
 #include "math.h"
-
+// #include "typehint.h"
 
 typedef float8_128 (*transform_fn1_t)(float8_128, SIM_X86::tensor aux);
 
 inline void element_wise_transform_inplace(SIM_X86::tensor vmem, int len, transform_fn1_t fn, SIM_X86::tensor aux) {
     int len1024 = len / 1024 * 1024;
     float8_128 res;
-#pragma clang loop unroll_count(16)
+// #pragma clang loop unroll_count(16)
     for (int i = 0; i < len1024; i += 1024) {
         float8_128 val = v_f32_ld_tnsr_b(i / 32, vmem);
         res = fn(val, aux);

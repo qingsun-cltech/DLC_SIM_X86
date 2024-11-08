@@ -5,7 +5,7 @@
 #ifndef __SYNC_OPS_H_X86__
 #define __SYNC_OPS_H_X86__
 
-
+// #include "typehint.h"
 
 inline void sync_inc(int syncflag) {
     asm volatile("{ pseudo@0 @pseudo vs_imm0 = 0; "

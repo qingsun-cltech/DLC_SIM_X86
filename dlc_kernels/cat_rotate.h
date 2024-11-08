@@ -4,10 +4,10 @@
 
 #include "ldst.h"
 #include "permute.h"
-
+// #include "typehint.h"
 
 #include "align.h"
-
+// #include "kernel_arg_types.h"
 #include "math.h"
 
 const int D_CMEM = 3;

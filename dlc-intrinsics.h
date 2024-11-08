@@ -123,7 +123,7 @@ inline int dlc_dma(SIM_X86::tensor src, int, SIM_X86::tensor dst, int, int len, 
     if (!(k * dst_st + unit_len <= dst.data_size)) {
       printf("device_id = %d\n", get_device_id());
       printf("len = %d, src_st = %d, dst_st = %d, unit_len = %d\n", len, src_st, dst_st, unit_len);
-      printf("__PTR = %x, ptr = %x, __LEN = %d, size = %d, type = %d\n", dst.__PTR, dst.data_ptr, dst.__LEN, dst.data_size, dst.type);
+      printf("__PTR = %x, ptr = %x, __LEN = %ld, size = %ld, type = %d\n", dst.__PTR, dst.data_ptr, dst.__LEN, dst.data_size, dst.type);
     }
     assert(k * dst_st + unit_len <= dst.data_size && "ERROR: dlc_dma: dst_addr out of range");
     std::copy_n(src.data_ptr + k * src_st, unit_len, dst.data_ptr + k * dst_st);

@@ -6,7 +6,7 @@
 #define _FRCP_RD_WITHOUT_UNARY_H_X86_
 
 #include "function.h"
-
+// #include "typehint.h"
 
 inline float8_128 __dlc_frcp_rd_without_unary(float8_128 a) {
     int8_128 valueNoSignBit = v_u32_and(*(int8_128*)(&a), 0x7fffffff);

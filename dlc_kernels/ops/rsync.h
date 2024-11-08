@@ -5,7 +5,7 @@
 #ifndef __RSYNC_OPS_H_X86__
 #define __RSYNC_OPS_H_X86__
 
-
+// #include "typehint.h"
 
 inline void rsync_inc(int chipid, int syncflag) {
     int target = (chipid << 14) | (syncflag / 4);

@@ -2,10 +2,10 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #include "../cxx/types.hpp"
 #include "../cxx/uint31.hpp"
-
+// #include "typehint.h"
 
 struct CxxTensor {
     Uint31 addr;

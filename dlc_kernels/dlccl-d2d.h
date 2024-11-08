@@ -6,7 +6,7 @@
 #define _H_X86_DLCCL_D2D_
 
 #include "math.h"
-
+// #include "typehint.h"
 #include "../ops/sync.h"
 
 #ifndef SEND_SYNCFLAG

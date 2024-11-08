@@ -19,7 +19,6 @@ def clear_file(file, suf, file_name):
     if r'tensor' in res:
       pattern = r'\btensor\b'
       res = re.sub(pattern, r'SIM_X86::tensor', res)
-      # res = res.replace(r'tensor', r'SIM_X86::tensor')
     if r'void*' in res:
       res = res.replace(r'void*', r'SIM_X86::tensor')
     if r'void *' in res:
@@ -28,18 +27,24 @@ def clear_file(file, suf, file_name):
       res = res.replace(r'DLCMem', r'SIM_X86::DLCMem')
     if r'TensorInfo' in res:
       res = res.replace(r'TensorInfo', r'SIM_X86::TensorInfo')
-    if r'#include' in res and r'/' in res and file_name != r'libdevice.h':
-      res = res.replace(r'"', r'"../', 1)
-    if r'#include "kernel_arg_types.h"' in res:
-      res = '\n'
-    if r'#include "typehint.h"' in res:
-      res = '\n'
-    if r'#pragma once' in res:
-      res = '\n'
+
+    if r'__attribute__((address_space(2)))' in res:
+      res = res.replace(r'__attribute__((address_space(2)))', r'/*__attribute__((address_space(2)))*/')
+
     if r'#ifndef' in res and r'_H' in res:
       res = res.replace(r'_H', r'_H_X86')
     if r'#define' in res and r'_H' in res:
       res = res.replace(r'_H', r'_H_X86')
+
+    if r'#include' in res and r'/' in res and file_name != r'libdevice.h':
+      res = res.replace(r'"', r'"../', 1)
+    if r'#include "kernel_arg_types.h"' in res:
+      res = "// " + res
+    if r'#include "typehint.h"' in res:
+      res = "// " + res
+    if r'#pragma' in res:
+      res = res.replace(r'#', r'// #')
+
     if r'store128_128_ex' in res and file_name == r'permute.h':
       res = res.replace(r'store128_128_ex', r'store128_128_ex_permute')
 

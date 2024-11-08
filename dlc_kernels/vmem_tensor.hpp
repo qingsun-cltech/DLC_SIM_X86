@@ -2,8 +2,8 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
-
+// #include "kernel_arg_types.h"
+// #include "typehint.h"
 #include "align.h"
 #include "math.h"
 

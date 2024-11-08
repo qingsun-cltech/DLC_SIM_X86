@@ -6,7 +6,7 @@
 #define __MATMUL_T_H_X86__
 
 #include "ldst.h"
-
+// #include "typehint.h"
 inline float128_128 add128_128(float128_128 s, float128_128 a) {
     float8_128 r0 = v_f32_add_b(sub_vector(s, 0), sub_vector(a, 0));
     float8_128 r1 = v_f32_add_b(sub_vector(s, 1), sub_vector(a, 1));

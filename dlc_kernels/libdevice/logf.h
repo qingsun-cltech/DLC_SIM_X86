@@ -5,7 +5,7 @@
 #ifndef _LOGF_H_X86_
 #define _LOGF_H_X86_
 
-
+// #include "typehint.h"
 
 inline float8_128 __dlc_logf(float8_128 a) {
     float8_128 result = v_f32_log(a);

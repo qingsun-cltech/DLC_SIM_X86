@@ -736,10 +736,11 @@ namespace SIM_X86 {
     // const int type; // 0: smem, 1: vmem, 2: cmem, 3: hbm
     float* __PTR; // 整个memory的起点
     int64_t __LEN; // 整个memory的大小
-    int type; // 0: smem, 1: vmem, 2: cmem, 3: hbm
 
     float* data_ptr; // 当前tensor的地址
     int64_t data_size; // 当前tensor能用的大小
+
+    int type; // 0: smem, 1: vmem, 2: cmem, 3: hbm
 
     tensor() : __PTR(nullptr), __LEN(0), data_ptr(nullptr),
               data_size(0), type(-1) {}
@@ -776,7 +777,7 @@ namespace SIM_X86 {
     tensor operator+(const int64_t& off) const {
       int nlen = this->data_size - off * 32 / 128 * 128;
       if (!(nlen >= 0 && nlen <= this->__LEN)) {
-        printf("off = %d, data_size = %d, type = %d, data_ptr = %x, __PTR = %x, __LEN = %d\n",
+        printf("off = %ld, data_size = %ld, type = %d, data_ptr = %x, __PTR = %x, __LEN = %ld\n",
                off, this->data_size, this->type, this->data_ptr, this->__PTR, this->__LEN);
       }
       assert(nlen >= 0 && nlen <= this->__LEN);
@@ -1625,7 +1626,7 @@ inline void dlc_v_f32_store_kernel(const SIM_X86::tensor& vmem, const int& strid
     if (mask.test(i)) {
       assert(!bank.test((i * stride) % 8) && "ERROR: dlc_v_f32_store_kernel: vmem bank collision");
       if (i * stride * 128 + 128 > vmem.data_size) {
-        printf("stride = %d, ldst_mask = %d, data_size = %d, __LEN = %d\n", 
+        printf("stride = %d, ldst_mask = %d, data_size = %ld, __LEN = %ld\n", 
                 stride, ldst_mask, vmem.data_size, vmem.__LEN);
       }
       assert(i * stride * 128 + 128 <= vmem.data_size &&

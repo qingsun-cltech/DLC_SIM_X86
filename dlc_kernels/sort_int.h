@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #include "typehint.h"
 #include "math.h"
 #include "libdevice.h"
 

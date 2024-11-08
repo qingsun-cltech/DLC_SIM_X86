@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #ifndef _LIBDEVICE_H_X86_
 #define _LIBDEVICE_H_X86_
 

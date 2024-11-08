@@ -5,7 +5,7 @@
 #ifndef _CONVERT_FLOAT_TO_INT_H_X86_
 #define _CONVERT_FLOAT_TO_INT_H_X86_
 
-
+// #include "typehint.h"
 
 inline int8_128 __dlc_float2int_rd(float8_128 a) {
     int8_128 result0;

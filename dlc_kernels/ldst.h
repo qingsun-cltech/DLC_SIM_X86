@@ -5,7 +5,7 @@
 #ifndef __LDST_H_X86__
 #define __LDST_H_X86__
 
-
+// #include "typehint.h"
 #include "math.h"
 
 inline float8_128 vmix(float8_128 a, float8_128 b) {
@@ -908,7 +908,7 @@ inline float128_128 load128_128_stride(const int off, const int st, SIM_X86::ten
 //可以设置h的长度
 inline float128_128 load128_128_stride_h(const int off, const int st, const int h, SIM_X86::tensor t)
 {
-    float8_128  __attribute__((address_space(2))) a[16];
+    float8_128  /*__attribute__((address_space(2)))*/ a[16];
     
     //case1: complete 8*128
     const int com_8_128_num = h/8;
@@ -982,7 +982,7 @@ inline float128_128 load128_128from_matrix_line_layout_wh(
     int mw = (_mw + 127) & 0xffffff80;
     int off = (row * mw + col) / 32;
     const int st = mw / 128;
-    float8_128  __attribute__((address_space(2))) a[16];
+    float8_128  /*__attribute__((address_space(2)))*/ a[16];
     int h = min(_mh - row, 128);
     int w = min(_mw - col, 128);
     //case1: complete 8*128
@@ -1116,7 +1116,7 @@ inline void store128_128_stride_h(const int off, const int st, const int h, SIM_
     const int incom_8_128_num = h%8;
     const int st_mask = pre_exp2(incom_8_128_num);
 
-    float8_128  __attribute__((address_space(2))) a[16];
+    float8_128  /*__attribute__((address_space(2)))*/ a[16];
     a[0] = sub_vector(data, 0);
     a[1] = sub_vector(data, 1);
     a[2] = sub_vector(data, 2);

@@ -433,7 +433,7 @@ inline void strided_get_long(DLCTensor *input_, DLCTensor *output_, SIM_X86::ten
     dlc_sync(handle);
     handle = dlc_dma(hbm_in, D_HBM, (int*)((unsigned)(smem_in_data) / 128), D_SMEM, in_hbm_length, 256, 128, 128, 7);
     dlc_sync(handle);
-    #pragma clang loop unroll_count(32)
+    // #pragma clang loop unroll_count(32)
     for(int i = 0; i < numel; i++){
       ((int*)smem_out_data)[((int*)smem_out_offset)[i]] = ((int*)smem_in_data)[((int*)(smem_in_offset))[i]];
     }
@@ -444,7 +444,7 @@ inline void strided_get_long(DLCTensor *input_, DLCTensor *output_, SIM_X86::ten
     dlc_sync(handle);
     handle = dlc_dma(hbm_in + 4, D_HBM, (int*)((unsigned)(smem_in_data) / 128), D_SMEM, in_hbm_length, 256, 128, 128, 7);
     dlc_sync(handle);
-    #pragma clang loop unroll_count(32)
+    // #pragma clang loop unroll_count(32)
     for(int i = 0; i < numel; i++){
       ((int*)smem_out_data)[((int*)smem_out_offset)[i]] = ((int*)smem_in_data)[((int*)(smem_in_offset))[i]];
     }

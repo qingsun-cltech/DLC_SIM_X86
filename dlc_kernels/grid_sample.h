@@ -2,8 +2,8 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
-
+// #include "kernel_arg_types.h"
+// #include "typehint.h"
 #include "permute.h"
 #include "libdevice.h"
 #include ".././libdevice/fdiv_rn_without_unary.h"
@@ -79,7 +79,7 @@ inline float8_128 cubic_convolution2(float8_128 x, float8_128 A) {
 }
 
 inline void get_cubic_upsample_coefficients(
-    float8_128 __attribute__((address_space(2))) *coeffs, float8_128 t) {
+    float8_128 /*__attribute__((address_space(2)))*/ *coeffs, float8_128 t) {
 	float8_128 A = -0.75f;
 
 	float8_128 x1 = t;
@@ -93,7 +93,7 @@ inline void get_cubic_upsample_coefficients(
 }
 
 inline void get_cubic_upsampling_coefficients(
-    float8_128 __attribute__((address_space(2))) *coeffs, float8_128 t) {
+    float8_128 /*__attribute__((address_space(2)))*/ *coeffs, float8_128 t) {
   float8_128 A = -0.75f;
 
   float8_128 x1 = t;
@@ -107,7 +107,7 @@ inline void get_cubic_upsampling_coefficients(
 }
 
 inline void get_cubic_coefficients_grad(
-    float8_128 __attribute__((address_space(2))) *coeffs, float8_128 t) {
+    float8_128 /*__attribute__((address_space(2)))*/ *coeffs, float8_128 t) {
   float8_128 A = -0.75f;
   float8_128 x;
 
@@ -167,7 +167,7 @@ inline void get_cubic_coefficients_grad(
 /* x0 * coeffs[0] + x1 * coeffs[1] + x2 * coeffs[2] + x3 * coeffs[3] */
 inline float8_128 cubic_interp1d(
     float8_128 x0, float8_128 x1, float8_128 x2, float8_128 x3, float8_128 t) {
-	float8_128 __attribute__((address_space(2))) coeffs[4];
+	float8_128 /*__attribute__((address_space(2)))*/ coeffs[4];
 	get_cubic_upsample_coefficients(coeffs, t);
 
   float8_128 x0_coeffs0 = v_f32_mul_b(x0, coeffs[0]);
@@ -440,7 +440,7 @@ inline float8_128 select_data_2d(
   for (vs = 0; vs < VMEMSize; vs += 1024) {
     float8_128 data = v_f32_ld_tnsr_b(0, tensor_slice(input0_vmem, vs / 32));
     
-    #pragma unroll 8
+    // #pragma unroll 8
     for (int roll = 0; roll < 8; ++roll) {
       int8_128 nidx = idx - vs - 128 * roll;
       bool8_128 nidx_gteq = v_s32_cmp(GTEQ, nidx, 0);
@@ -458,7 +458,7 @@ inline float8_128 select_data_2d(
     int ldst_msk = pre_exp2((VMEMSize - vs) / 128);
     float8_128 data = v_f32_ld_tnsr_st_msk(0, tensor_slice(input0_vmem, vs / 32), 1, ldst_msk);
 
-    #pragma unroll 7
+    // #pragma unroll 7
     for (int roll = 0; roll < (VMEMSize - vs) / 128; ++roll) {
       int8_128 nidx = idx - vs - 128 * roll;
       bool8_128 nidx_gteq = v_s32_cmp(GTEQ, nidx, 0);
@@ -491,7 +491,7 @@ inline float8_128 select_data_2d_bf16(
     float8_128 data_0 = bfloat16_to_float(unpack_16b(__$S(data), 0));
     float8_128 data_1 = bfloat16_to_float(unpack_16b(__$S(data), 1));
     
-    #pragma unroll 8
+    // #pragma unroll 8
     for (int roll = 0; roll < 8; ++roll) {
       int8_128 nidx_0 = idx_0 - vs - 128 * roll;
       int8_128 nidx_1 = idx_1 - vs - 128 * roll;
@@ -518,7 +518,7 @@ inline float8_128 select_data_2d_bf16(
     float8_128 data_0 = bfloat16_to_float(unpack_16b(__$S(data), 0));
     float8_128 data_1 = bfloat16_to_float(unpack_16b(__$S(data), 1));
 
-    #pragma unroll 7
+    // #pragma unroll 7
     for (int roll = 0; roll < (VMEMSize - vs) / 128; ++roll) {
       int8_128 nidx_0 = idx_0 - vs - 128 * roll;
       int8_128 nidx_1 = idx_1 - vs - 128 * roll;
@@ -554,7 +554,7 @@ inline float8_128 select_data_3d(
   for (vs = 0; vs < VMEMSize; vs += 1024) {
     float8_128 data = v_f32_ld_tnsr_b(0, tensor_slice(input0_vmem, vs / 32));
     
-    #pragma unroll 8
+    // #pragma unroll 8
     for (int roll = 0; roll < 8; ++roll) {
       int8_128 nidx = idx - vs - 128 * roll;
       bool8_128 nidx_gteq = v_s32_cmp(GTEQ, nidx, 0);
@@ -572,7 +572,7 @@ inline float8_128 select_data_3d(
     int ldst_msk = pre_exp2((VMEMSize - vs) / 128);
     float8_128 data = v_f32_ld_tnsr_st_msk(0, tensor_slice(input0_vmem, vs / 32), 1, ldst_msk);
 
-    #pragma unroll 7
+    // #pragma unroll 7
     for (int roll = 0; roll < (VMEMSize - vs) / 128; ++roll) {
       int8_128 nidx = idx - vs - 128 * roll;
       bool8_128 nidx_gteq = v_s32_cmp(GTEQ, nidx, 0);
@@ -597,7 +597,7 @@ inline void update_and_store_data_with_idx(
   for (vs = 0; vs < VMEMSize / 1024 * 1024; vs += 1024) {
     float8_128 data_in = v_f32_ld_tnsr_b(0, tensor_slice(input0_vmem, vs / 32));
 
-    #pragma unroll 8
+    // #pragma unroll 8
     for (int roll = 0; roll < 8; ++roll) {
       int8_128 nidx = idx - vs - roll * 128;
 
@@ -623,7 +623,7 @@ inline void update_and_store_data_with_idx(
     int ldst_msk = pre_exp2((VMEMSize - vs) / 128);
     float8_128 data_in = v_f32_ld_tnsr_st_msk(0, tensor_slice(input0_vmem, vs / 32), 1, ldst_msk);
 
-    #pragma unroll 7
+    // #pragma unroll 7
     for (int roll = 0; roll < (VMEMSize - vs) / 128; ++roll) {
       int8_128 nidx = idx - vs - roll * 128;
 

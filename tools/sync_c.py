@@ -28,6 +28,7 @@ def clear_file(file, file_name):
       res = res.replace(r'void*', r'SIM_X86::tensor')
     if r'void *' in res:
       res = res.replace(r'void *', r'SIM_X86::tensor ')
+
     if r'DLCMem' in res:
       res = res.replace(r'DLCMem', r'SIM_X86::DLCMem')
     if r'DLCTensor' in res:
@@ -36,12 +37,18 @@ def clear_file(file, file_name):
       res = res.replace(r'DLCScalar', r'SIM_X86::DLCScalar')
     if r'TensorInfo' in res:
       res = res.replace(r'TensorInfo', r'SIM_X86::TensorInfo')
+
+    if r'__attribute__((address_space(2)))' in res:
+      res = res.replace(r'__attribute__((address_space(2)))', r'/*__attribute__((address_space(2)))*/')
+
     if r'#include' in res:
       res = res.replace(r'"', r'"dlc_kernels/', 1)
     if r'typehint.h' in res:
-      res = '\n'
+      res = "// " + res
     if r'kernel_arg_types.h' in res:
-      res = '\n'
+      res = "// " + res
+    if r'#pragma' in res:
+      res = res.replace(r'#', r'// #')
 
     F.append(res)
 

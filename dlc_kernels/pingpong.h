@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #include "typehint.h"
 #include "align.h"
 
 inline int VMEMtoHBM2_nosync(SIM_X86::tensor vmem, SIM_X86::tensor hbm, int H, int W, int dst_stride) {

@@ -2,10 +2,10 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #include "typehint.h"
 #include "libdevice.h"
 
-
+// #include "kernel_arg_types.h"
 #include "align.h"
 
 #define MAX_Q_GEMM_ROWS 50
@@ -13,14 +13,14 @@
 #define MAX_ALT_GEMM_ROWS 8
 
 
-inline void rearrangeDataOrder(__attribute__((address_space(2))) int8_128 *a,
-                               __attribute__((address_space(2))) int8_128 *b,
-                               __attribute__((address_space(2))) int8_128 *c,
-                               __attribute__((address_space(2))) int8_128 *d,
-                               __attribute__((address_space(2))) int8_128 *e,
-                               __attribute__((address_space(2))) int8_128 *f,
-                               __attribute__((address_space(2))) int8_128 *g,
-                               __attribute__((address_space(2))) int8_128 *h, int length) {
+inline void rearrangeDataOrder(/*__attribute__((address_space(2)))*/ int8_128 *a,
+                               /*__attribute__((address_space(2)))*/ int8_128 *b,
+                               /*__attribute__((address_space(2)))*/ int8_128 *c,
+                               /*__attribute__((address_space(2)))*/ int8_128 *d,
+                               /*__attribute__((address_space(2)))*/ int8_128 *e,
+                               /*__attribute__((address_space(2)))*/ int8_128 *f,
+                               /*__attribute__((address_space(2)))*/ int8_128 *g,
+                               /*__attribute__((address_space(2)))*/ int8_128 *h, int length) {
     float8_128 f_v[8];
     float8_128 h_temp[8];
     float8_128 res[8];
@@ -747,11 +747,11 @@ inline void make_sequential_8bit_kernel(SIM_X86::tensor q_weight,SIM_X86::tensor
     }
 }
 
-inline void dequant_4bit_8_prep_zero(__attribute__((address_space(2))) int8_128* zero, 
-                                    __attribute__((address_space(2))) float8_128* z1z16_0,
-                                    __attribute__((address_space(2))) float8_128* z1z16_1,
-                                    __attribute__((address_space(2))) float8_128* y1y16_0, 
-                                    __attribute__((address_space(2))) float8_128* y1y16_1) {
+inline void dequant_4bit_8_prep_zero(/*__attribute__((address_space(2)))*/ int8_128* zero, 
+                                    /*__attribute__((address_space(2)))*/ float8_128* z1z16_0,
+                                    /*__attribute__((address_space(2)))*/ float8_128* z1z16_1,
+                                    /*__attribute__((address_space(2)))*/ float8_128* y1y16_0, 
+                                    /*__attribute__((address_space(2)))*/ float8_128* y1y16_1) {
     float8_128 z1 = -1024.0;
     float8_128 z16_1 = -64.0f;
     float8_128 z16_2 = __dlc_int2float_rn(*zero);
@@ -775,19 +775,19 @@ inline float8_128 fp(float8_128 v) {
     return *(float8_128*)(&i);
 }
 
-inline void dequant_4bit_8_gptq(__attribute__((address_space(2))) int8_128* q_0,
-                                __attribute__((address_space(2))) float8_128* dq_0,
-                                __attribute__((address_space(2))) float8_128* dq_1,
-                                __attribute__((address_space(2))) float8_128* dq_2,
-                                __attribute__((address_space(2))) float8_128* dq_3,
-                                __attribute__((address_space(2))) float8_128* dq_4,
-                                __attribute__((address_space(2))) float8_128* dq_5,
-                                __attribute__((address_space(2))) float8_128* dq_6,
-                                __attribute__((address_space(2))) float8_128* dq_7,
-                                __attribute__((address_space(2))) float8_128* z1z16_0,
-                                __attribute__((address_space(2))) float8_128* z1z16_1,
-                                __attribute__((address_space(2))) float8_128* y1y16_0,
-                                __attribute__((address_space(2))) float8_128* y1y16_1
+inline void dequant_4bit_8_gptq(/*__attribute__((address_space(2)))*/ int8_128* q_0,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_0,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_1,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_2,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_3,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_4,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_5,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_6,
+                                /*__attribute__((address_space(2)))*/ float8_128* dq_7,
+                                /*__attribute__((address_space(2)))*/ float8_128* z1z16_0,
+                                /*__attribute__((address_space(2)))*/ float8_128* z1z16_1,
+                                /*__attribute__((address_space(2)))*/ float8_128* y1y16_0,
+                                /*__attribute__((address_space(2)))*/ float8_128* y1y16_1
 
                                                     ) {
   int8_128 qa = *q_0;

@@ -7,7 +7,7 @@
 
 #include "ldst.h"
 #include "matmul_t.h"
-
+// #include "typehint.h"
 #include "align.h"
 
 inline float8_128 load8_k(SIM_X86::tensor t, int st, int ldmk, int w, float fill) {
@@ -345,13 +345,13 @@ inline void matmul_gain(SIM_X86::tensor A, SIM_X86::tensor C, int ah, int aw, in
     int m = min(12 , n);
     int stride = (bw + 127) / 128;
     int bw128 = ALIGN128(bw);
-    #pragma clang loop unroll_count(4)
+    // #pragma clang loop unroll_count(4)
     for(int i = 0; i < m; i ++){
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
         m_matmul_single(left0, 0, 0);
     }
-    #pragma clang loop unroll_count(4)
+    // #pragma clang loop unroll_count(4)
     for(int i = 12; i < n; i ++){
         int AoffsetPgx0 = ah * iaw  / 32 + i * 32;
 //         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -369,7 +369,7 @@ inline void matmul_gain(SIM_X86::tensor A, SIM_X86::tensor C, int ah, int aw, in
         res = res + ret0;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-    #pragma clang loop unroll_count(2)
+    // #pragma clang loop unroll_count(2)
     for(int i = n - m; i < n - 1; i ++){
         int Coffset = ((i * 8) * bw128 + ibw) / 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -398,7 +398,7 @@ inline void matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, int ah, int b
     int m = min(12 , n);
     int stride = (bw + 127) / 128;
     int bw128 = ALIGN128(bw);
-    #pragma clang loop unroll_count(4)
+    // #pragma clang loop unroll_count(4)
     for(int i = 0; i < m; i ++){
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -408,7 +408,7 @@ inline void matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, int ah, int b
         m_matmul_single(left0, 0, 0);
         m_matmul_single(left1, 0, 1);
     }
-    #pragma clang loop unroll_count(4)
+    // #pragma clang loop unroll_count(4)
     for(int i = 12; i < n; i ++){
         int AoffsetPgx0 = ah * iaw  / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -430,7 +430,7 @@ inline void matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, int ah, int b
         res = res + ret1;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-    #pragma clang loop unroll_count(2)
+    // #pragma clang loop unroll_count(2)
     for(int i = n - m; i < n - 1; i ++){
         int Coffset = ((i * 8) * bw128 + ibw) / 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -814,13 +814,13 @@ inline void packed_matmul_gain(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::te
     int bw128 = ALIGN128(bw);
     int bf_bw = ((bw128 + 255) / 256) * 128;
     int bf_stride = bf_bw / 128;
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
         m_matmul_packed_single(left0, 0, 0);
     }
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = 6; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int Coffset = (((i - 6) * 16) * bw128 + ibw) / 32;
@@ -857,7 +857,7 @@ inline void packed_matmul_gain(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X86::te
             store8_128_stride_stmk(Coffset + 8 * bw128 / 32, stride, C, res1, 255);
         }
     }
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = ((i * 16) * bw128 + ibw) / 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -932,7 +932,7 @@ inline void packed_matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X8
     int bw128 = ALIGN128(bw);
     int bf_bw = ((bw128 + 255) / 256) * 128;
     int bf_stride = bf_bw / 128;
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -942,7 +942,7 @@ inline void packed_matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X8
         m_matmul_packed_single(left1, 0, 1);
     }
 
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = 6; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -979,7 +979,7 @@ inline void packed_matmul_gain_2pgx(SIM_X86::tensor A, SIM_X86::tensor C, SIM_X8
             store8_128_stride_stmk(Coffset + 8 * bw128 / 32, stride, C, res1, 255);
         }
     }
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = ((i * 16) * bw128 + ibw) / 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -5360,7 +5360,7 @@ inline void matmul_gain_2pgx_no_pack_opt_store_rest_bf16(SIM_X86::tensor A, SIM_
     int m = min(12, n);
     int stride = 1;
     int bw128 = ALIGN128(bw);
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_128_stride(AoffsetPgx0, 1, A);
@@ -5370,7 +5370,7 @@ inline void matmul_gain_2pgx_no_pack_opt_store_rest_bf16(SIM_X86::tensor A, SIM_
         m_matmul_single(bfloat16_to_float(x2) * scale, 0, 1);
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -5399,7 +5399,7 @@ inline void matmul_gain_2pgx_no_pack_opt_store_rest_bf16(SIM_X86::tensor A, SIM_
         }
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -5445,7 +5445,7 @@ inline void matmul_gain_2pgx_no_pack_opt_rest_bf16(SIM_X86::tensor A, SIM_X86::t
     int n = (cur_ah + 7) / 8;
     int m = min(12, n);
     int stride = 1;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_128_stride(AoffsetPgx0, 1, A);
@@ -5455,7 +5455,7 @@ inline void matmul_gain_2pgx_no_pack_opt_rest_bf16(SIM_X86::tensor A, SIM_X86::t
         m_matmul_single(bfloat16_to_float(x2) * scale, 0, 1);
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -5477,7 +5477,7 @@ inline void matmul_gain_2pgx_no_pack_opt_rest_bf16(SIM_X86::tensor A, SIM_X86::t
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -5567,7 +5567,7 @@ inline void matmul_gain_no_pack_opt_store_bf16(SIM_X86::tensor A, SIM_X86::tenso
     int stride = 1;
     int bw128 = ALIGN128(bw);
     int is_hi = (iaw / 128) % 2;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
@@ -5576,7 +5576,7 @@ inline void matmul_gain_no_pack_opt_store_bf16(SIM_X86::tensor A, SIM_X86::tenso
         else x1 = unpack_16b(as_int(left0), 1);
         m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -5602,7 +5602,7 @@ inline void matmul_gain_no_pack_opt_store_bf16(SIM_X86::tensor A, SIM_X86::tenso
             store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res0)));
         }
     }
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -5647,7 +5647,7 @@ inline void matmul_gain_no_pack_opt_bf16(SIM_X86::tensor A, SIM_X86::tensor C, S
     int m = min(12, n);
     int stride = 1;
     int is_hi = (iaw / 128) % 2;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
@@ -5656,7 +5656,7 @@ inline void matmul_gain_no_pack_opt_bf16(SIM_X86::tensor A, SIM_X86::tensor C, S
         else x1 = unpack_16b(as_int(left0), 1);
         m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -5675,7 +5675,7 @@ inline void matmul_gain_no_pack_opt_bf16(SIM_X86::tensor A, SIM_X86::tensor C, S
 
         store8_128_stride_stmk(Coffset, stride, C, res0, 255);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -8110,13 +8110,13 @@ inline void matmul_gain_opt_rest(SIM_X86::tensor A, SIM_X86::tensor C, int ah, i
     int n = (cur_ah + 7) / 8;
     int m = min(12, n);
     int stride = 1;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
         m_matmul_single(left0 * scale, 0, 0);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         //         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -8134,7 +8134,7 @@ inline void matmul_gain_opt_rest(SIM_X86::tensor A, SIM_X86::tensor C, int ah, i
         res = res + ret0;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -8164,14 +8164,14 @@ inline void matmul_gain_opt_rest_stride(SIM_X86::tensor A, SIM_X86::tensor C, in
     int aw128 = ALIGN128(aw);
     int stride = ALIGN128(aw) / 128;
 
-// #pragma unroll
+// // #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx = (iaw + i * 8 * aw128) / 32;
         float8_128 left = load8_k(A + AoffsetPgx, stride, 255, min(aw - iaw, 128), 0);
 
         m_matmul_single(left * scale, 0, 0);
     }
-// #pragma unroll
+// // #pragma unroll
     for (int i = 12; i < n; i++) {
         int AoffsetPgx = (iaw + i * 8 * aw128) / 32;
         int Coffset = (i - 12) * 32;
@@ -8186,7 +8186,7 @@ inline void matmul_gain_opt_rest_stride(SIM_X86::tensor A, SIM_X86::tensor C, in
         res = res + ret;
         v_f32_st_tnsr_b(Coffset, C, res);
     }
-// #pragma unroll
+// // #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -8215,7 +8215,7 @@ inline void matmul_gain_2pgx_opt_rest(SIM_X86::tensor A, SIM_X86::tensor C, int 
     int n = (cur_ah + 7) / 8;
     int m = min(12, n);
     int stride = 1;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -8225,7 +8225,7 @@ inline void matmul_gain_2pgx_opt_rest(SIM_X86::tensor A, SIM_X86::tensor C, int 
         m_matmul_single(left0 * scale, 0, 0);
         m_matmul_single(left1 * scale, 0, 1);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -8247,7 +8247,7 @@ inline void matmul_gain_2pgx_opt_rest(SIM_X86::tensor A, SIM_X86::tensor C, int 
         res = res + ret1;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -8280,7 +8280,7 @@ inline void matmul_gain_2pgx_opt_rest_stride(SIM_X86::tensor A, SIM_X86::tensor 
     int m = min(12, n);
     int aw128 = ALIGN128(aw);
     int stride = ALIGN128(aw) / 128;
-// #pragma unroll
+// // #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = (iaw + i * 8 * aw128) / 32;
         int AoffsetPgx1 = AoffsetPgx0 + 4;
@@ -8290,7 +8290,7 @@ inline void matmul_gain_2pgx_opt_rest_stride(SIM_X86::tensor A, SIM_X86::tensor 
         m_matmul_single(left0 * scale, 0, 0);
         m_matmul_single(left1 * scale, 0, 1);
     }
-// #pragma unroll
+// // #pragma unroll
     for (int i = 12; i < n; i++) {
         int AoffsetPgx0 = (iaw + i * 8 * aw128) / 32;
         int AoffsetPgx1 = AoffsetPgx0 + 4;
@@ -8312,7 +8312,7 @@ inline void matmul_gain_2pgx_opt_rest_stride(SIM_X86::tensor A, SIM_X86::tensor 
         res = res + ret1;
         v_f32_st_tnsr_b(Coffset, C, res);
     }
-// #pragma unroll
+// // #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -8880,13 +8880,13 @@ inline void matmul_gain_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor A, SI
     int n = (ah + 7) / 8;
     int m = min(12, n);
     int stride = 1;
-#pragma clang loop unroll_count(4)
+// #pragma clang loop unroll_count(4)
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
         m_matmul_single(left0, 0, 0);
     }
-#pragma clang loop unroll_count(4)
+// #pragma clang loop unroll_count(4)
     for (int i = 12; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
 
@@ -8906,7 +8906,7 @@ inline void matmul_gain_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor A, SI
         res = res + ret0;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = load8_128_stride_with_ldmask(Coffset, stride, 255, C);
@@ -8940,7 +8940,7 @@ inline void matmul_gain_2pgx_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor 
     int n = (ah + 7) / 8;
     int m = min(12, n);
     int stride = 1;
-#pragma clang loop unroll_count(4)
+// #pragma clang loop unroll_count(4)
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -8950,7 +8950,7 @@ inline void matmul_gain_2pgx_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor 
         m_matmul_single(left0, 0, 0);
         m_matmul_single(left1, 0, 1);
     }
-#pragma clang loop unroll_count(4)
+// #pragma clang loop unroll_count(4)
     for (int i = 12; i < n; i++) {
         int AoffsetPgx0 = ah * iaw / 32 + i * 32;
         int AoffsetPgx1 = ah * (iaw + 128) / 32 + i * 32;
@@ -8975,7 +8975,7 @@ inline void matmul_gain_2pgx_sdpa(SIM_X86::tensor correct_item, SIM_X86::tensor 
         res = res + ret1;
         store8_128_stride_stmk(Coffset, stride, C, res, 255);
     }
-#pragma clang loop unroll_count(2)
+// #pragma clang loop unroll_count(2)
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = load8_128_stride_with_ldmask(Coffset, stride, 255, C);
@@ -9388,7 +9388,7 @@ inline void transfer_RHS_bw256(SIM_X86::tensor A, SIM_X86::tensor B, int len, in
         store_trans_8_128_first(B, a, 0);
         store_trans_8_128(B, b, 512);
     }
-#pragma clang loop unroll_count(8)
+// #pragma clang loop unroll_count(8)
     for (int i = 1; i < ((len + 2047) / 2048); i += 1) {
         float8_128 x0 = load8_128_stride(i * 64, 1, A);
         float8_128 x1 = load8_128_stride(i * 64 + 32, 1, A);
@@ -10202,7 +10202,7 @@ inline void matmul_gain_2pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
     int m = min(12, n);
     int stride = 1;
     int bw128 = ALIGN128(bw);
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_128_stride(AoffsetPgx0, 1, A);
@@ -10212,7 +10212,7 @@ inline void matmul_gain_2pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
         m_matmul_single(bfloat16_to_float(x2) * scale, 0, 1);
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -10241,7 +10241,7 @@ inline void matmul_gain_2pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
         }
     }
 
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res = (iaw == 0 && add_src_flag == 0)
@@ -10289,7 +10289,7 @@ inline void matmul_gain_1pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
     int stride = 1;
     int bw128 = ALIGN128(bw);
     int is_hi = (iaw / 128) % 2;
-#pragma unroll
+// #pragma unroll
     for (int i = 0; i < m; i++) {
         int AoffsetPgx0 = ah * bf_iaw / 32 + i * 32;
         float8_128 left0 = load8_k(A + AoffsetPgx0, 1, 255, min(aw - iaw, 128), 0);
@@ -10298,7 +10298,7 @@ inline void matmul_gain_1pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
         else x1 = unpack_16b(as_int(left0), 1);
         m_matmul_single(bfloat16_to_float(x1) * scale, 0, 0);
     }
-#pragma unroll
+// #pragma unroll
     for (int i = 12; i < n; i++) {
         int Coffset = (i - 12) * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)
@@ -10324,7 +10324,7 @@ inline void matmul_gain_1pgx_bf16_no_extra_space(SIM_X86::tensor A, SIM_X86::ten
             store8_128_stride_with_stmask(Coffset, 1, 255, D, as_float(float_to_bfloat16(v_u32_move_f(0), res0)));
         }
     }
-#pragma unroll
+// #pragma unroll
     for (int i = n - m; i < n - 1; i++) {
         int Coffset = i * 32;
         float8_128 res0 = (iaw == 0 && add_src_flag == 0)

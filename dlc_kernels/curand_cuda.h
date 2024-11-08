@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #include "typehint.h"
 
 typedef struct _uint4 {
     int8_128 x;

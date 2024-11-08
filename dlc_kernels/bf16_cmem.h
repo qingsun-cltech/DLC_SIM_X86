@@ -2,9 +2,9 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #include "ldst.h"
-
+// #include "typehint.h"
 
 inline int8_128 __$S(float8_128 a) {
     int8_128 result0;

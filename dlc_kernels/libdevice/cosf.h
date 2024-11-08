@@ -5,7 +5,7 @@
 #ifndef _COSF_H_X86_
 #define _COSF_H_X86_
 
-
+// #include "typehint.h"
 #include "function.h"
 
 static inline int8_128 _$S(float8_128 a) {

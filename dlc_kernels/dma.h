@@ -5,7 +5,7 @@
 #ifndef DMA_H_X86
 #define DMA_H_X86
 
-
+// #include "typehint.h"
 #ifdef USE_CMEM
 const int D_HBM = 3;
 #else

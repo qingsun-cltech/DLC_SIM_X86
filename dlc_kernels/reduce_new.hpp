@@ -2,10 +2,10 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #include "cxxbase.hpp"
 #include "ldst.h"
-
+// #include "typehint.h"
 
 inline int8_128 broadcast(int v) { return v_u32_move_i(v); }
 inline float8_128 broadcast(float v) { return v_u32_move_f(v); }

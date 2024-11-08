@@ -5,7 +5,7 @@
 #ifndef _MATH_H_X86_
 #define _MATH_H_X86_
 
-
+// #include "typehint.h"
 
 inline int pre_exp2(int x) { return (1 << x) - 1; }
 inline int min(int a, int b) { return (a < b) ? a : b; }
@@ -60,7 +60,7 @@ inline int soft_sdiv_remainder(int a, int b, int *remainder) {
 inline int8_128 soft_sdiv_1024(int8_128 a, int8_128 b) {
     int8_128 q = v_u32_move_i(0);
     int8_128 s = v_u32_move_i(0);
-// #pragma clang loop unroll_count(8)
+// // #pragma clang loop unroll_count(8)
     for (int i = 31; i >= 0; i--) {
         int8_128 tmp = v_u32_and(v_u32_shr(a, v_u32_move_i(i)), v_u32_move_i(1));
         q = (v_u32_shl(q, v_u32_move_i(1))) | tmp;
@@ -74,7 +74,7 @@ inline int8_128 soft_sdiv_1024(int8_128 a, int8_128 b) {
 inline int8_128 soft_sdiv_remainder_1024(int8_128 a, int8_128 b, int8_128 *remainder) {
     int8_128 q = v_u32_move_i(0);
     int8_128 s = v_u32_move_i(0);
-// #pragma clang loop unroll_count(8)
+// // #pragma clang loop unroll_count(8)
     for (int i = 31; i >= 0; i--) {
         int8_128 tmp = v_u32_and(v_u32_shr(a, v_u32_move_i(i)), v_u32_move_i(1));
         q = (v_u32_shl(q, v_u32_move_i(1))) | tmp;

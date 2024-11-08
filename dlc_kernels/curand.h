@@ -2,7 +2,7 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #ifndef _CURAND_H_X86_
 #define _CURAND_H_X86_
 
@@ -20,7 +20,7 @@ If a consistent curand behavior with CUDA is required, please use `curand_cuda.h
 #include "../libdevice/logf_without_unary.h"
 #include "../libdevice/sincosf.h"
 #include "../libdevice/uint2float_rz.h"
-
+// #include "typehint.h"
 
 typedef struct _uint4 {
     int8_128 x;
@@ -67,8 +67,8 @@ const int kPhiloxSB = 0xCD9E8D57;
 
 // inline int8_128 u32mul(int8_128 a, int8_128 b, int8_128 *hi) {
 //     // Extract bytes from input values
-//     int8_128 __attribute__((address_space(2))) a_bytes[4];
-//     int8_128 __attribute__((address_space(2))) b_bytes[4];
+//     int8_128 /*__attribute__((address_space(2)))*/ a_bytes[4];
+//     int8_128 /*__attribute__((address_space(2)))*/ b_bytes[4];
 //     for (int i = 0; i < 4; ++i) {
 //         a_bytes[i] = (a >> (i * 8)) & 0xFF;
 //         b_bytes[i] = (b >> (i * 8)) & 0xFF;
@@ -106,8 +106,8 @@ const int kPhiloxSB = 0xCD9E8D57;
 
 inline int8_128 u32mullo(int8_128 a, int8_128 b) {
     // Extract bytes from input values
-    int8_128 __attribute__((address_space(2))) a_bytes[4];
-    int8_128 __attribute__((address_space(2))) b_bytes[4];
+    int8_128 /*__attribute__((address_space(2)))*/ a_bytes[4];
+    int8_128 /*__attribute__((address_space(2)))*/ b_bytes[4];
     for (int i = 0; i < 4; ++i) {
         a_bytes[i] = (a >> (i * 8)) & 0xFF;
         b_bytes[i] = (b >> (i * 8)) & 0xFF;
@@ -138,8 +138,8 @@ inline int8_128 u32mullo(int8_128 a, int8_128 b) {
 inline int8_128 u32mul(int8_128 a, int8_128 b, int8_128 *hi) {
 
     // Extract bytes from input values
-    int8_128 __attribute__((address_space(2))) a_bytes[3];
-    int8_128 __attribute__((address_space(2))) b_bytes[3];
+    int8_128 /*__attribute__((address_space(2)))*/ a_bytes[3];
+    int8_128 /*__attribute__((address_space(2)))*/ b_bytes[3];
     for (int i = 0; i < 3; ++i) {
         a_bytes[i] = (v_u32_shr(a, (i * 11))) & 0x7FF;
         b_bytes[i] = (v_u32_shr(b, (i * 11))) & 0x7FF;
@@ -228,7 +228,7 @@ inline int8_128 u32mul(int8_128 a, int8_128 b, int8_128 *hi) {
 // #define ITEM8(n) ITEM4(n) ITEM4(n + 4)
 // #define ITEM16(n) ITEM8(n) ITEM8(n + 8)
 // #define ITEM32(n) ITEM16(n) ITEM16(n + 16)
-//     // #pragma clang loop unroll_count(8)
+//     // // #pragma clang loop unroll_count(8)
 //     for (int n = 0; n < 32; n += 1) {
 //         // unroll will cause not store yet error
 //         ITEM(n)

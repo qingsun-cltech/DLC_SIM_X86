@@ -2,9 +2,9 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #include "ldst.h"
-
+// #include "typehint.h"
 
 typedef float8_128 (*reduceBinaryOp_t)(float8_128, float8_128);
 typedef float8_128 (*reduceUnaryOp_t)(float8_128);

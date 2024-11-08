@@ -2,10 +2,10 @@
 #include "../dlc-intrinsics.h"
 #include "../typehint.h"
 
-
+// #pragma once
 #include "bf16.h"
 #include "ldst.h"
-
+// #include "typehint.h"
 #include "align.h"
 #include "convert_element_type.h"
 
