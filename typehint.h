@@ -777,7 +777,7 @@ namespace SIM_X86 {
     tensor operator+(const int64_t& off) const {
       int nlen = this->data_size - off * 32 / 128 * 128;
       if (!(nlen >= 0 && nlen <= this->__LEN)) {
-        printf("off = %ld, data_size = %ld, type = %d, data_ptr = %x, __PTR = %x, __LEN = %ld\n",
+        printf("off = %ld, data_size = %ld, type = %d, data_ptr = %p, __PTR = %p, __LEN = %ld\n",
                off, this->data_size, this->type, this->data_ptr, this->__PTR, this->__LEN);
       }
       assert(nlen >= 0 && nlen <= this->__LEN);
